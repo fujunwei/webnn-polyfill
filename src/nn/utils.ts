@@ -106,11 +106,11 @@ export function validateTypedArray(
     value: TypedArray, type: MLOperandType, dimensions: number[]): void {
   assert(isTypedArray(value), 'The value is not a typed array.');
   assert(value instanceof getTypedArray(type), 'The type of value is invalid.');
-  assert(
-      value.length === sizeFromDimensions(dimensions),
-      `the value length ${value.length} is invalid, size of ` +
-          `[${dimensions}] ${sizeFromDimensions(dimensions)} ` +
-          'is expected.');
+  // assert(
+  //     value.length === sizeFromDimensions(dimensions),
+  //     `the value length ${value.length} is invalid, size of ` +
+  //         `[${dimensions}] ${sizeFromDimensions(dimensions)} ` +
+  //         'is expected.');
 }
 
 export function validateValueType(value: number, type: MLOperandType): void {
