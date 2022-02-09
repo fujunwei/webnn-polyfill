@@ -16,7 +16,8 @@
     mocha.checkLeaks();
   </script>
   <script type="module" src="./ops/add.js"></script>
-  <script type="module" src="./ops/batch_norm.js"></script>
+  <script type="module" src="./ops/relu.js"></script>
+  <!-- <script type="module" src="./ops/batch_norm.js"></script>
   <script type="module" src="./ops/clamp.js"></script>
   <script type="module" src="./ops/concat.js"></script>
   <script type="module" src="./ops/conv2d.js"></script>
@@ -46,13 +47,13 @@
   <script type="module" src="./ops/sub.js"></script>
   <script type="module" src="./ops/tanh.js"></script>
   <script type="module" src="./ops/transpose.js"></script>
-  <script type="module" src="./ops/unary.js"></script>
+  <script type="module" src="./ops/unary.js"></script> -->
   <script class="mocha-exec" type="module">
-    import {setPolyfillBackend} from './utils.js';
-    const backend = (new URLSearchParams(location.search)).get('backend');
-    setPolyfillBackend(backend).then(() => {
+    // import {setPolyfillBackend} from './utils.js';
+    // const backend = (new URLSearchParams(location.search)).get('backend');
+    // setPolyfillBackend(backend).then(() => {
       mocha.run();
-    });
+    // });
   </script>
 </body>
 </html>

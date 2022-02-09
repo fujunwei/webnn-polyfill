@@ -2,15 +2,21 @@
 import * as utils from '../utils.js';
 
 describe('test relu', function() {
-  const context = navigator.ml.createContext();
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
 
-  it('relu', function() {
+  it('relu', async function() {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: [3, 4, 5]});
     const y = builder.relu(x);
     const graph = builder.build({y});
     const inputs = {
-      'x': new Float32Array([
+      'x':{resource: await utils.createGPUBuffer(device, utils.sizeOfShape([3, 4, 5]), [
         -1.483762,   0.6447428,   -1.2266507,  -1.7132527,  0.9777725,
         -0.34438756, -0.99921757, -1.2882805,  1.3725083,   -0.06386258,
         -0.44738683, -0.6776338,  0.5027815,   -1.0428967,  -1.4220539,
@@ -23,9 +29,9 @@ describe('test relu', function() {
         -0.02042965, 0.5222995,   1.3394557,   -1.0482218,  1.1774449,
         0.8999488,   -1.1143959,  1.0122099,   -0.48604885, -0.06009902,
         -0.1766853,  1.4515465,   -0.7182982,  2.0361354,   0.7899623,
-      ]),
+      ])},
     };
-    const outputs = {'y': new Float32Array(utils.sizeOfShape([3, 4, 5]))};
+    const outputs = {'y': {resource: await utils.createGPUBuffer(device, utils.sizeOfShape([3, 4, 5]))}};
     graph.compute(inputs, outputs);
     const expected = [
       0.,        0.6447428, 0.,         0.,         0.9777725, 0.,
@@ -39,6 +45,6 @@ describe('test relu', function() {
       0.,        1.1774449, 0.8999488,  0.,         1.0122099, 0.,
       0.,        0.,        1.4515465,  0.,         2.0361354, 0.7899623,
     ];
-    utils.checkValue(outputs.y, expected);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape([3, 4, 5]), outputs.y.resource), expected);
   });
 });
