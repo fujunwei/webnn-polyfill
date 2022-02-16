@@ -1,24 +1,32 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test leakyRelu', function() {
-  const context = navigator.ml.createContext();
+describe('test leakyRelu', async function() {
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
 
-  function testLeakyRelu(input, expected, options = {}) {
+  async function testLeakyRelu(input, expected, options = {}) {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: input.shape});
     const y = builder.leakyRelu(x, options);
     const graph = builder.build({y});
-    const inputs = {'x': new Float32Array(input.value)};
-    const outputs = {'y': new Float32Array(utils.sizeOfShape(input.shape))};
+    const inputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(input.shape), input.value);
+    const inputs = {'x': {resource: inputBuffer}};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(input.shape));
+    const outputs = {'y': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
-    utils.checkValue(outputs.y, expected);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape(input.shape), outputBuffer), expected);
   }
 
-  it('leakyRelu', function() {
-    testLeakyRelu(
+  it('leakyRelu', async function() {
+    await testLeakyRelu(
         {shape: [3], value: [-1, 0, 1]}, [-0.1, 0., 1.], {alpha: 0.1});
-    testLeakyRelu(
+    await testLeakyRelu(
         {
           shape: [3, 4, 5],
           value: [
@@ -53,8 +61,8 @@ describe('test leakyRelu', function() {
         {alpha: 0.1});
   });
 
-  it('leakyRelu default', function() {
-    testLeakyRelu(
+  it('leakyRelu default', async function() {
+    await testLeakyRelu(
         {
           shape: [3, 4, 5],
           value: [

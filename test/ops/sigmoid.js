@@ -2,16 +2,25 @@
 import * as utils from '../utils.js';
 
 describe('test sigmoid', function() {
-  const context = navigator.ml.createContext();
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
+
   async function testSigmoid(input, expected, shape) {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: shape});
     const y = builder.sigmoid(x);
     const graph = builder.build({y});
-    const inputs = {'x': new Float32Array(input)};
-    const outputs = {'y': new Float32Array(utils.sizeOfShape(shape))};
+    const inputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(shape), input);
+    const inputs = {'x': {resource: inputBuffer}};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(shape));
+    const outputs = {'y': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
-    utils.checkValue(outputs.y, expected);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape(shape), outputBuffer), expected);
   }
   it('sigmoid 1d', async function() {
     testSigmoid([-1, 0, 1], [0.26894143, 0.5, 0.7310586], [3]);
