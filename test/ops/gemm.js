@@ -1,32 +1,44 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test gemm', function() {
-  const context = navigator.ml.createContext();
+describe('test gemm', async function() {
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
 
-  function testGemm(A, B, expected, C = undefined, options = {}) {
+  async function testGemm(A, B, expected, C = undefined, options = {}) {
     const builder = new MLGraphBuilder(context);
     const a = builder.input('a', {type: 'float32', dimensions: A.shape});
     const b = builder.constant(
-        {type: 'float32', dimensions: B.shape}, new Float32Array(B.value));
+        {type: 'float32', dimensions: B.shape},
+        {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(B.shape), B.value)});
     if (C !== undefined) {
       if (typeof C === 'number') {
-        options.c = builder.constant(C);
+        options.c = builder.constant(
+          {type: 'float32', dimensions: [1]},
+          {resource: await utils.createGPUBuffer(device, 1, [C])});
       } else {
         options.c = builder.constant(
-            {type: 'float32', dimensions: C.shape}, new Float32Array(C.value));
+            {type: 'float32', dimensions: C.shape},
+            {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(C.shape), C.value)});
       }
     }
     const c = builder.gemm(a, b, options);
     const graph = builder.build({c});
-    const inputs = {'a': new Float32Array(A.value)};
-    const outputs = {'c': new Float32Array(utils.sizeOfShape(expected.shape))};
+    const inputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(A.shape), A.value);
+    const inputs = {'a':  {resource: inputBuffer}};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(expected.shape));
+    const outputs = {'c': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
-    utils.checkValue(outputs.c, expected.value);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape(expected.shape), outputBuffer), expected.value);
   }
 
-  it('gemm all attributes', function() {
-    testGemm(
+  it('gemm all attributes', async function() {
+    await testGemm(
         {
           shape: [4, 3],
           value: [
@@ -86,8 +98,8 @@ describe('test gemm', function() {
         {alpha: 0.25, beta: 0.35, aTranspose: true, bTranspose: true});
   });
 
-  it('gemm alpha', function() {
-    testGemm(
+  it('gemm alpha', async function() {
+    await testGemm(
         {
           shape: [3, 5],
           value: [
@@ -137,8 +149,8 @@ describe('test gemm', function() {
         undefined, {alpha: 0.5});
   });
 
-  it('gemm beta', function() {
-    testGemm(
+  it('gemm beta', async function() {
+    await testGemm(
         {
           shape: [2, 7],
           value: [
@@ -189,8 +201,8 @@ describe('test gemm', function() {
         {beta: 0.5});
   });
 
-  it('gemm bias', function() {
-    testGemm(
+  it('gemm bias', async function() {
+    await testGemm(
         {
           shape: [3, 6],
           value: [
@@ -260,8 +272,8 @@ describe('test gemm', function() {
         });
   });
 
-  it('gemm no bias', function() {
-    testGemm(
+  it('gemm no bias', async function() {
+    await testGemm(
         {
           shape: [2, 10],
           value: [
@@ -295,8 +307,8 @@ describe('test gemm', function() {
         });
   });
 
-  it('gemm scalar bias', function() {
-    testGemm(
+  it('gemm scalar bias', async function() {
+    await testGemm(
         {
           shape: [2, 3],
           value: [
@@ -341,8 +353,8 @@ describe('test gemm', function() {
         3.14);
   });
 
-  it('gemm broadcasting bias', function() {
-    testGemm(
+  it('gemm broadcasting bias', async function() {
+    await testGemm(
         {
           shape: [3, 7],
           value: [
@@ -380,8 +392,8 @@ describe('test gemm', function() {
         {shape: [1], value: [0.7780463]});
   });
 
-  it('gemm aTranpose', function() {
-    testGemm(
+  it('gemm aTranpose', async function() {
+    await testGemm(
         {
           shape: [6, 3],
           value: [
@@ -435,8 +447,8 @@ describe('test gemm', function() {
         0.0, {aTranspose: true});
   });
 
-  it('gemm bTranspose', function() {
-    testGemm(
+  it('gemm bTranspose', async function() {
+    await testGemm(
         {
           shape: [3, 6],
           value: [

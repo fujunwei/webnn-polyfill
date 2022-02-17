@@ -1,31 +1,39 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test matmul', function() {
-  const context = navigator.ml.createContext();
+describe('test matmul', async function() {
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
 
-  function testMatmul(A, B, expected) {
+  async function testMatmul(A, B, expected) {
     const builder = new MLGraphBuilder(context);
     const a = builder.input('a', {type: 'float32', dimensions: A.shape});
     const b = builder.constant(
-        {type: 'float32', dimensions: B.shape}, new Float32Array(B.value));
+        {type: 'float32', dimensions: B.shape}, {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(B.shape), B.value)});
     const c = builder.matmul(a, b);
     const graph = builder.build({c});
-    const inputs = {'a': new Float32Array(A.value)};
-    const outputs = {'c': new Float32Array(utils.sizeOfShape(expected.shape))};
+    const inputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(A.shape), A.value);
+    const inputs = {'a':  {resource: inputBuffer}};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(expected.shape));
+    const outputs = {'c': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
-    utils.checkValue(outputs.c, expected.value);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape(expected.shape), outputBuffer), expected.value);
   }
 
-  it('matmul 1d', function() {
-    testMatmul(
+  it('matmul 1d', async function() {
+    await testMatmul(
         {shape: [4], value: [0.9025404, 0.89538723, 0.16789329, 0.7440875]},
         {shape: [4], value: [0.8782074, 0.22533207, 0.7134056, 0.04190519]},
         {shape: [], value: [1.1453342]});
   });
 
-  it('matmul 1dx2d', function() {
-    testMatmul(
+  it('matmul 1dx2d', async function() {
+    await testMatmul(
         {shape: [4], value: [0.1309212, 0.9090703, 0.62183434, 0.9195683]}, {
           shape: [4, 3],
           value: [
@@ -46,8 +54,8 @@ describe('test matmul', function() {
         {shape: [1, 3], value: [0.6616409, -0.80990994, 0.8797145]});
   });
 
-  it('matmul 2dx1d', function() {
-    testMatmul(
+  it('matmul 2dx1d', async function() {
+    await testMatmul(
         {
           shape: [3, 4],
           value: [
@@ -69,8 +77,8 @@ describe('test matmul', function() {
         {shape: [3, 1], value: [0.8839391, 0.9928265, 0.5955407]});
   });
 
-  it('matmul 2d', function() {
-    testMatmul(
+  it('matmul 2d', async function() {
+    await testMatmul(
         {
           shape: [3, 4],
           value: [
@@ -121,8 +129,8 @@ describe('test matmul', function() {
         });
   });
 
-  it('matmul 3d', function() {
-    testMatmul(
+  it('matmul 3d', async function() {
+    await testMatmul(
         {
           shape: [2, 3, 4],
           value: [
@@ -168,8 +176,8 @@ describe('test matmul', function() {
         });
   });
 
-  it('matmul 3dx2d', function() {
-    testMatmul(
+  it('matmul 3dx2d', async function() {
+    await testMatmul(
         {
           shape: [2, 3, 4],
           value: [
@@ -222,8 +230,8 @@ describe('test matmul', function() {
         });
   });
 
-  it('matmul 3dx2d should be 3d', function() {
-    testMatmul(
+  it('matmul 3dx2d should be 3d', async function() {
+    await testMatmul(
         {
           shape: [1, 3, 4],
           value: [
@@ -274,8 +282,8 @@ describe('test matmul', function() {
         });
   });
 
-  it('matmul 4d', function() {
-    testMatmul(
+  it('matmul 4d', async function() {
+    await testMatmul(
         {
           shape: [1, 2, 3, 4],
           value: [
@@ -321,8 +329,8 @@ describe('test matmul', function() {
         });
   });
 
-  it('matmul 4dx2d', function() {
-    testMatmul(
+  it('matmul 4dx2d', async function() {
+    await testMatmul(
         {
           shape: [1, 2, 3, 4],
           value: [
