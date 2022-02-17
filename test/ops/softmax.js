@@ -2,30 +2,37 @@
 import * as utils from '../utils.js';
 
 describe('test softmax', function() {
-  const context = navigator.ml.createContext();
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
 
-  it('softmax', function() {
+  it('softmax', async function() {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: [3, 4]});
     const y = builder.softmax(x);
     const graph = builder.build({y});
-    const inputs = {
-      'x': new Float32Array([
-        0.4301911,
-        0.54719144,
-        -1.1637765,
-        0.18390046,
-        0.58390397,
-        0.1735679,
-        0.539724,
-        -0.953514,
-        -0.59202826,
-        -0.17344485,
-        0.14395015,
-        -0.37920907,
-      ]),
-    };
-    const outputs = {'y': new Float32Array(utils.sizeOfShape([3, 4]))};
+    const size = utils.sizeOfShape([3, 4]);
+    const inputBuffer = await utils.createGPUBuffer(device, size, [
+      0.4301911,
+      0.54719144,
+      -1.1637765,
+      0.18390046,
+      0.58390397,
+      0.1735679,
+      0.539724,
+      -0.953514,
+      -0.59202826,
+      -0.17344485,
+      0.14395015,
+      -0.37920907,
+    ]);
+    const outputBuffer = await utils.createGPUBuffer(device, size);
+    const inputs = {'x': {resource: inputBuffer}};
+    const outputs = {'y': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected = [
       0.32165375,
@@ -41,6 +48,6 @@ describe('test softmax', function() {
       0.35717794,
       0.21167983,
     ];
-    utils.checkValue(outputs.y, expected);
+    utils.checkValue(await utils.readbackGPUBuffer(device, size, outputBuffer), expected);
   });
 });
