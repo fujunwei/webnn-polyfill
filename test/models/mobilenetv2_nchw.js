@@ -5,6 +5,9 @@ const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/mobilenetv2_nchw';
 
+let device;
+let context;
+
 describe('test mobilenetv2 nchw', function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
@@ -17,7 +20,9 @@ describe('test mobilenetv2 nchw', function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
     const builder = new MLGraphBuilder(context);
     let fusedConv = false;
 
@@ -25,10 +30,10 @@ describe('test mobilenetv2 nchw', function() {
       const prefix = testDataDir + '/weights/conv_' + name;
       const weightsName = prefix + '_weight.npy';
       const weights =
-          await utils.buildConstantFromNpy(builder, new URL(weightsName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(weightsName, url));
       const biasName = prefix + '_bias.npy';
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       if (!fusedConv) {
         const conv = builder.add(
             builder.conv2d(input, weights, options),
@@ -58,10 +63,10 @@ describe('test mobilenetv2 nchw', function() {
       const prefix = testDataDir + '/weights/gemm_' + name;
       const weightsName = prefix + '_weight.npy';
       const weights =
-          await utils.buildConstantFromNpy(builder, new URL(weightsName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(weightsName, url));
       const biasName = prefix + '_bias.npy';
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       const options = {c: bias, bTranspose: true};
       return builder.gemm(input, weights, options);
     }
@@ -141,8 +146,8 @@ describe('test mobilenetv2 nchw', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      graph.dispose();
-      fusedGraph.dispose();
+      // graph.dispose();
+      // fusedGraph.dispose();
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
@@ -155,14 +160,17 @@ describe('test mobilenetv2 nchw', function() {
   });
 
   async function testMobileNetV2(graph, inputFile, expectedFile) {
+    const inputBuffer = await utils.createGPUBufferFromNpy(device, new URL(inputFile, url));
     const inputs = {
-      'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url)),
+      'input': {resource: inputBuffer},
     };
-    const outputs = {'gemm': new Float32Array(utils.sizeOfShape([1, 1000]))};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape([1, 1000]));
+    const outputs = {'gemm': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
-    utils.checkValue(outputs.gemm, expected, utils.modelFp32AccuracyCriteria);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1000]), outputBuffer),
+        expected, utils.modelFp32AccuracyCriteria);
   }
 
   it('test_data_set_0', async function() {

@@ -7,6 +7,9 @@ const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/mobilenetv2_nhwc';
 
+let device;
+let context;
+
 describe('test mobilenetv2 nhwc', function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
@@ -19,7 +22,9 @@ describe('test mobilenetv2 nhwc', function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
     const builder = new MLGraphBuilder(context);
     let fusedConv = false;
 
@@ -27,11 +32,11 @@ describe('test mobilenetv2 nhwc', function() {
         input, weightsSubName, biasSubName, relu6, options) {
       const weightsName = `${testDataDir}/weights/Const_${weightsSubName}.npy`;
       const weights =
-          await utils.buildConstantFromNpy(builder, new URL(weightsName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(weightsName, url));
       const biasName =
           `${testDataDir}/weights/MobilenetV2_${biasSubName}_bias.npy`;
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       options.inputLayout = 'nhwc';
       if (!fusedConv) {
         const add = builder.add(
@@ -151,8 +156,8 @@ describe('test mobilenetv2 nhwc', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      graph.dispose();
-      fusedGraph.dispose();
+      // graph.dispose();
+      // fusedGraph.dispose();
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
@@ -165,15 +170,17 @@ describe('test mobilenetv2 nhwc', function() {
   });
 
   async function testMobileNetV2(graph, inputFile, expectedFile) {
+    const inputBuffer = await utils.createGPUBufferFromNpy(device, new URL(inputFile, url));
     const inputs = {
-      'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url)),
+      'input': {resource: inputBuffer},
     };
-    const outputs = {'softmax': new Float32Array(utils.sizeOfShape([1, 1001]))};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape([1, 1001]));
+    const outputs = {'softmax': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(
-        outputs.softmax, expected, utils.modelFp32AccuracyCriteria);
+      await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1001]), outputBuffer), expected, utils.modelFp32AccuracyCriteria);
   }
 
   it('test_data_set_0', async function() {

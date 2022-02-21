@@ -127,14 +127,15 @@ async function readFromNpy(fileName) {
   const dimensions = npArray.shape;
   const type = dataTypeMap.get(npArray.dataType).type;
   const TypedArrayConstructor = dataTypeMap.get(npArray.dataType).array;
-  const typedArray = new TypedArrayConstructor(sizeOfShape(dimensions));
+  // const typedArray = new TypedArrayConstructor(sizeOfShape(dimensions));
+  const array = new Array();
   const dataView = new DataView(npArray.data.buffer);
   const littleEndian = npArray.byteOrder === '<';
   for (let i = 0; i < sizeOfShape(dimensions); ++i) {
-    typedArray[i] = dataView[`get` + type[0].toUpperCase() + type.substr(1)](
-        i * TypedArrayConstructor.BYTES_PER_ELEMENT, littleEndian);
+    array.push(dataView[`get` + type[0].toUpperCase() + type.substr(1)](
+        i * TypedArrayConstructor.BYTES_PER_ELEMENT, littleEndian));
   }
-  return {buffer: typedArray, type, dimensions};
+  return {buffer: array, type, dimensions};
 }
 
 export async function createTypedArrayFromNpy(fileName) {
@@ -142,10 +143,17 @@ export async function createTypedArrayFromNpy(fileName) {
   return data.buffer;
 }
 
-export async function buildConstantFromNpy(builder, fileName) {
+export async function createGPUBufferFromNpy(device, fileName) {
   const data = await readFromNpy(fileName);
+  return await createGPUBuffer(device, sizeOfShape(data.dimensions), data.buffer);
+}
+
+export async function buildConstantFromNpy(device, builder, fileName) {
+  const data = await readFromNpy(fileName);
+  console.log(fileName.pathname, data.dimensions);
   return builder.constant(
-      {type: data.type, dimensions: data.dimensions}, data.buffer);
+      {type: data.type, dimensions: data.dimensions},
+      {resource: await createGPUBuffer(device, sizeOfShape(data.dimensions), data.buffer)});
 }
 
 // Refer to Implicit padding algorithms of Android NNAPI:
