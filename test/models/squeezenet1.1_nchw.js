@@ -4,7 +4,8 @@ import * as utils from '../utils.js';
 const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/squeezenet1.1_nchw';
-
+let device;
+let context;
 describe('test squeezenet1.1 nchw', function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
@@ -17,7 +18,9 @@ describe('test squeezenet1.1 nchw', function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
     const builder = new MLGraphBuilder(context);
     let fusedConv = false;
 
@@ -25,10 +28,10 @@ describe('test squeezenet1.1 nchw', function() {
       const prefix = testDataDir + '/weights/squeezenet0_' + name;
       const weightsName = prefix + '_weight.npy';
       const weights =
-          await utils.buildConstantFromNpy(builder, new URL(weightsName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(weightsName, url));
       const biasName = prefix + '_bias.npy';
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       if (!fusedConv) {
         return builder.relu(builder.add(
             builder.conv2d(input, weights, options),
@@ -81,8 +84,8 @@ describe('test squeezenet1.1 nchw', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      graph.dispose();
-      fusedGraph.dispose();
+      // graph.dispose();
+      // fusedGraph.dispose();
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
@@ -95,17 +98,18 @@ describe('test squeezenet1.1 nchw', function() {
   });
 
   async function testSqueezeNet(graph, inputFile, expectedFile) {
+    const inputBuffer = await utils.createGPUBufferFromNpy(device, new URL(inputFile, url));
     const inputs = {
-      'data': await utils.createTypedArrayFromNpy(new URL(inputFile, url)),
+      'data': {resource: inputBuffer},
     };
-    const outputs = {
-      'reshape0': new Float32Array(utils.sizeOfShape([1, 1000])),
-    };
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape([1, 1000]));
+    const outputs = {'reshape0': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(
-        outputs.reshape0, expected, utils.modelFp32AccuracyCriteria);
+      await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1000]), outputBuffer),
+      expected, utils.modelFp32AccuracyCriteria);
   }
 
   it('test_data_set_0', async function() {

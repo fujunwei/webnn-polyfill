@@ -150,7 +150,6 @@ export async function createGPUBufferFromNpy(device, fileName) {
 
 export async function buildConstantFromNpy(device, builder, fileName) {
   const data = await readFromNpy(fileName);
-  console.log(fileName.pathname, data.dimensions);
   return builder.constant(
       {type: data.type, dimensions: data.dimensions},
       {resource: await createGPUBuffer(device, sizeOfShape(data.dimensions), data.buffer)});
