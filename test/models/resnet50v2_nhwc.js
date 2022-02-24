@@ -6,7 +6,8 @@ import * as utils from '../utils.js';
 const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/resnet50v2_nhwc';
-
+let device;
+let context;
 describe('test resnet50v2 nhwc', function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
@@ -19,7 +20,9 @@ describe('test resnet50v2 nhwc', function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
     const builder = new MLGraphBuilder(context);
     let fusedConv = false;
     const autoPad = 'same-upper';
@@ -45,10 +48,10 @@ describe('test resnet50v2 nhwc', function() {
       }
       const weightsName = prefix + '_weights.npy';
       const weights =
-          await utils.buildConstantFromNpy(builder, new URL(weightsName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(weightsName, url));
       const biasName = prefix + '_Conv2D_bias.npy';
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       options.inputLayout = layout;
       options.filterLayout = 'ohwi';
       if (!fusedConv) {
@@ -80,11 +83,11 @@ describe('test resnet50v2 nhwc', function() {
       }
       const mulParamName = prefix + '_FusedBatchNorm_mul_0_param.npy';
       const mulParam =
-          await utils.buildConstantFromNpy(builder,
+          await utils.buildConstantFromNpy(device, builder,
               new URL(mulParamName, url));
       const addParamName = prefix + '_FusedBatchNorm_add_param.npy';
       const addParam =
-          await utils.buildConstantFromNpy(builder,
+          await utils.buildConstantFromNpy(device, builder,
               new URL(addParamName, url));
       return builder.relu(
           builder.add(builder.mul(input, mulParam), addParam));
@@ -105,10 +108,7 @@ describe('test resnet50v2 nhwc', function() {
       if (!downsample && shortcut) {
         residual = builder.maxPool2d(
             input, {windowDimensions: [1, 1], strides, layout, autoPad});
-        const padding = builder.constant(
-            {type: 'int32', dimensions: [4, 2]},
-            new Int32Array([0, 0, 1, 1, 1, 1, 0, 0]));
-        const pad = builder.pad(conv1, padding);
+        const pad = builder.pad(conv1, [0, 0, 1, 1, 1, 1, 0, 0]);
         conv2 = await buildConv(pad, nameIndices.concat(['2']), {strides});
       } else {
         conv2 = await buildConv(
@@ -120,13 +120,9 @@ describe('test resnet50v2 nhwc', function() {
     }
 
     async function buildResNet() {
-      const padding = builder.constant(
-          {type: 'int32', dimensions: [4, 2]},
-          new Int32Array([0, 0, 3, 3, 3, 3, 0, 0]));
-
       const input = builder.input('input',
           {type: 'float32', dimensions: [1, 224, 224, 3]});
-      const pad = builder.pad(input, padding);
+      const pad = builder.pad(input, [0, 0, 3, 3, 3, 3, 0, 0]);
       const conv1 = await buildConv(pad, ['', '', '1'], {strides}, false);
       const pool = builder.maxPool2d(
           conv1, {windowDimensions: [3, 3], strides, layout, autoPad});
@@ -174,8 +170,7 @@ describe('test resnet50v2 nhwc', function() {
 
       const fusedBn =
           await buildFusedBatchNorm(bottleneck13, ['postnorm']);
-      const mean = builder.reduceMean(
-          fusedBn, {keepDimensions: true, axes: [1, 2]});
+      const mean = builder.averagePool2d(fusedBn, {layout});
       const conv2 = await buildConv(
           mean, ['', '', 'logits'], {autoPad}, false);
       const reshape = builder.reshape(conv2, [1, -1]);
@@ -191,8 +186,10 @@ describe('test resnet50v2 nhwc', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      graph.dispose();
-      fusedGraph.dispose();
+      if ('dispose' in graph) {
+        graph.dispose();
+        fusedGraph.dispose();
+      }
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
@@ -205,15 +202,17 @@ describe('test resnet50v2 nhwc', function() {
   });
 
   async function testResNet50V2(graph, inputFile, expectedFile) {
+    const inputBuffer = await utils.createGPUBufferFromNpy(device, new URL(inputFile, url));
     const inputs = {
-      'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url))};
-    const outputs = {
-      'softmax': new Float32Array(utils.sizeOfShape([1, 1001]))};
+      'input': {resource: inputBuffer},
+    };
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape([1, 1001]));
+    const outputs = {'softmax': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(
-        outputs.softmax, expected, utils.ctsFp32RestrictAccuracyCriteria);
+        await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1001]), outputBuffer), expected, utils.ctsFp32RestrictAccuracyCriteria);
   }
 
   it('test_data_set_0', async function() {

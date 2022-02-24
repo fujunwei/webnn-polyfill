@@ -180,7 +180,7 @@ describe('test mobilenetv2 nhwc', function() {
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(
-      await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1001]), outputBuffer), expected, utils.modelFp32AccuracyCriteria);
+        await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1001]), outputBuffer), expected, utils.modelFp32AccuracyCriteria);
   }
 
   it('test_data_set_0', async function() {

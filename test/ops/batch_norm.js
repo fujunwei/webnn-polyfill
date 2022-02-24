@@ -1,41 +1,60 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test batchNormalization', function() {
-  const context = navigator.ml.createContext();
+describe('test batchNormalization', async function() {
+  let device;
+  let context;
+  before(async () => {
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
+  });
 
-  function testBatchNorm(
+  async function testBatchNorm(
       input, mean, variance, expected, scale = undefined, bias = undefined,
       options = {}, activation = undefined) {
     const builder = new MLGraphBuilder(context);
     const x =
         builder.input('input', {type: 'float32', dimensions: input.shape});
     const m =
-        builder.constant({type: 'float32', dimensions: mean.shape}, mean.data);
+        builder.constant(
+            {type: 'float32', dimensions: mean.shape},
+            {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(mean.shape), mean.data)});
     const v = builder.constant(
-        {type: 'float32', dimensions: variance.shape}, variance.data);
+        {type: 'float32', dimensions: variance.shape},
+        {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(variance.shape), variance.data)});
     if (scale !== undefined) {
       options.scale = builder.constant(
-          {type: 'float32', dimensions: scale.shape}, scale.data);
+          {type: 'float32', dimensions: scale.shape},
+          {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(scale.shape), scale.data)});
+    } else {
+      options.scale = builder.constant(
+        {type: 'float32', dimensions: mean.shape},
+        {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(mean.shape), new Float32Array(utils.sizeOfShape(mean.shape)).fill(1.0))});
     }
     if (bias !== undefined) {
       options.bias = builder.constant(
-          {type: 'float32', dimensions: bias.shape}, bias.data);
+          {type: 'float32', dimensions: bias.shape},
+          {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(bias.shape), bias.data)});
+    } else {
+      options.bias = builder.constant(
+        {type: 'float32', dimensions: mean.shape},
+        {resource: await utils.createGPUBuffer(device, utils.sizeOfShape(mean.shape), new Float32Array(utils.sizeOfShape(mean.shape)).fill(0.0))});
     }
     if (activation !== undefined) {
       options.activation = utils.createActivation(builder, activation);
     }
     const output = builder.batchNormalization(x, m, v, options);
     const graph = builder.build({output});
-    const inputs = {'input': input.data};
-    const outputs = {
-      'output': new Float32Array(utils.sizeOfShape(input.shape)),
-    };
+    const inputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(input.shape), input.data);
+    const inputs = {'input': {resource: inputBuffer}};
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape(input.shape));
+    const outputs = {'output': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
-    utils.checkValue(outputs.output, expected);
+    utils.checkValue(await utils.readbackGPUBuffer(device, utils.sizeOfShape(input.shape), outputBuffer), expected);
   }
 
-  it('batchNormalization nchw', function() {
+  it('batchNormalization nchw', async function() {
     const input = {
       shape: [1, 2, 1, 3],
       data: new Float32Array([-1, 0, 1, 2, 3, 4]),
@@ -57,27 +76,27 @@ describe('test batchNormalization', function() {
       data: new Float32Array([0, 1]),
     };
     let expected = [-0.999995, 0., 0.999995, -0.22474074, 1., 2.2247407];
-    testBatchNorm(input, mean, variance, expected, scale, bias);
+    await testBatchNorm(input, mean, variance, expected, scale, bias);
 
     expected = [0., 0., 0.999995, 0., 1., 2.2247407];
-    testBatchNorm(input, mean, variance, expected, scale, bias, {}, 'relu');
+    await testBatchNorm(input, mean, variance, expected, scale, bias, {}, 'relu');
 
     let expectedScale = [-0.999995, 0., 0.999995, -1.22474, 0., 1.22474];
-    testBatchNorm(input, mean, variance, expectedScale, scale);
+    await testBatchNorm(input, mean, variance, expectedScale, scale);
 
     expectedScale = [0., 0., 0.999995, 0., 0., 1.22474];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expectedScale, scale, undefined, {}, 'relu');
 
     let expectedBias = [-0.999995, 0., 0.999995, 0.183506, 1., 1.816494];
-    testBatchNorm(input, mean, variance, expectedBias, undefined, bias);
+    await testBatchNorm(input, mean, variance, expectedBias, undefined, bias);
 
     expectedBias = [0., 0., 0.999995, 0.183506, 1., 1.816494];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expectedBias, undefined, bias, {}, 'relu');
   });
 
-  it('batchNormalization nhwc', function() {
+  it('batchNormalization nhwc', async function() {
     const input = {
       shape: [1, 1, 3, 2],
       data: new Float32Array([-1, 2, 0, 3, 1, 4]),
@@ -99,32 +118,32 @@ describe('test batchNormalization', function() {
       data: new Float32Array([0, 1]),
     };
     let expected = [-0.999995, -0.22474074, 0., 1., 0.999995, 2.2247407];
-    testBatchNorm(input, mean, variance, expected, scale, bias, {axis: 3});
+    await testBatchNorm(input, mean, variance, expected, scale, bias, {axis: 3});
 
     expected = [0., 0., 0., 1., 0.999995, 2.2247407];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expected, scale, bias, {axis: 3}, 'relu');
 
     let expectedScale = [-0.999995, -1.22474, 0., 0., 0.999995, 1.22474];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expectedScale, scale, undefined, {axis: 3});
 
     expectedScale = [0., 0., 0., 0., 0.999995, 1.22474];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expectedScale, scale, undefined, {axis: 3},
         'relu');
 
     let expectedBias = [-0.999995, 0.183506, 0., 1., 0.999995, 1.816494];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expectedBias, undefined, bias, {axis: 3});
 
     expectedBias = [0., 0.183506, 0., 1., 0.999995, 1.816494];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expectedBias, undefined, bias, {axis: 3},
         'relu');
   });
 
-  it('batchNormalization without options', function() {
+  it('batchNormalization without options', async function() {
     const input = {
       shape: [1, 2, 1, 3],
       data: new Float32Array([-1, 0, 1, 2, 3, 4]),
@@ -139,10 +158,10 @@ describe('test batchNormalization', function() {
     };
 
     const expected = [-0.999995, 0., 0.999995, -0.816494, 0., 0.816494];
-    testBatchNorm(input, mean, variance, expected);
+    await testBatchNorm(input, mean, variance, expected);
   });
 
-  it('batchNormalization with epsilon', function() {
+  it('batchNormalization with epsilon', async function() {
     const input = {
       shape: [2, 3, 4, 5],
       data: new Float32Array([
@@ -220,7 +239,7 @@ describe('test batchNormalization', function() {
       -5.8637255e-01, -3.0367374e-01, -2.7111509e-01, -3.7675196e-01,
       -3.5137540e-01, -1.3970569e-02, 3.7042797e-04,  -3.5802066e-01,
     ];
-    testBatchNorm(
+    await testBatchNorm(
         input, mean, variance, expected, scale, bias, {epsilon: 1e-2});
   });
 });

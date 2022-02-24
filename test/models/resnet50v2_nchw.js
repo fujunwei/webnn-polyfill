@@ -6,7 +6,8 @@ import * as utils from '../utils.js';
 const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/resnet50v2_nchw';
-
+let device;
+let context;
 describe('test resnet50v2 nchw', function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
@@ -19,7 +20,9 @@ describe('test resnet50v2 nchw', function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
     const builder = new MLGraphBuilder(context);
     let fusedBatchNorm = false;
 
@@ -33,7 +36,7 @@ describe('test resnet50v2 nchw', function() {
       }
       const weightName = prefix + '_weight.npy';
       const weight =
-            await utils.buildConstantFromNpy(builder, new URL(weightName, url));
+            await utils.buildConstantFromNpy(device, builder, new URL(weightName, url));
       return builder.conv2d(input, weight, options);
     }
 
@@ -50,13 +53,13 @@ describe('test resnet50v2 nchw', function() {
       const meanName = prefix + '_running_mean.npy';
       const varName = prefix + '_running_var.npy';
       const scale =
-          await utils.buildConstantFromNpy(builder, new URL(scaleName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(scaleName, url));
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       const mean =
-          await utils.buildConstantFromNpy(builder, new URL(meanName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(meanName, url));
       const variance =
-          await utils.buildConstantFromNpy(builder, new URL(varName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(varName, url));
       const options = {scale: scale, bias: bias};
       if (!fusedBatchNorm) {
         const batchNorm =
@@ -79,10 +82,10 @@ describe('test resnet50v2 nchw', function() {
       const prefix = `${testDataDir}/weights/resnetv24_dense${name}`;
       const weightName = prefix + '_weight.npy';
       const weight =
-        await utils.buildConstantFromNpy(builder, new URL(weightName, url));
+        await utils.buildConstantFromNpy(device, builder, new URL(weightName, url));
       const biasName = prefix + '_bias.npy';
       const bias =
-        await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+        await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       const options = {c: bias, bTranspose: true};
       return builder.gemm(input, weight, options);
     }
@@ -176,8 +179,10 @@ describe('test resnet50v2 nchw', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      graph.dispose();
-      fusedGraph.dispose();
+      if ('dispose' in graph) {
+        graph.dispose();
+        fusedGraph.dispose();
+      }
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
@@ -190,15 +195,17 @@ describe('test resnet50v2 nchw', function() {
   });
 
   async function testResNet50V2(graph, inputFile, expectedFile) {
+    const inputBuffer = await utils.createGPUBufferFromNpy(device, new URL(inputFile, url));
     const inputs = {
-      'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url))};
-    const outputs = {
-      'gemm': new Float32Array(utils.sizeOfShape([1, 1000]))};
+      'input': {resource: inputBuffer},
+    };
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape([1, 1000]));
+    const outputs = {'gemm': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(
-        outputs.gemm, expected,
+        await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 1000]), outputBuffer), expected,
         // refer to onnx
         // https://github.com/onnx/models/blob/master/workflow_scripts/ort_test_dir_utils.py#L239
         new utils.AccuracyCriterion(1e-3, 1e-3));
