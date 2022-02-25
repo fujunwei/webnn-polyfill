@@ -4,7 +4,8 @@ import * as utils from '../utils.js';
 const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/tiny_yolov2_nchw';
-
+let device;
+let context;
 describe('test tinyYolov2 nchw', function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
@@ -17,7 +18,9 @@ describe('test tinyYolov2 nchw', function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const adaptor = await navigator.gpu.requestAdapter();
+    device = await adaptor.requestDevice();
+    context = navigator.ml.createContext(device);
     const builder = new MLGraphBuilder(context);
     let fused = false;
 
@@ -25,13 +28,13 @@ describe('test tinyYolov2 nchw', function() {
       const prefix = testDataDir + '/weights/convolution' + name;
       const weightName = prefix + '_W.npy';
       const weight =
-          await utils.buildConstantFromNpy(builder, new URL(weightName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(weightName, url));
       const options = {autoPad: 'same-upper'};
       let bias;
       if (useBias) {
         const biasName = prefix + '_B.npy';
         bias =
-            await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+            await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
         if (fused) {
           options.bias = bias;
         }
@@ -50,13 +53,13 @@ describe('test tinyYolov2 nchw', function() {
       const meanName = `${prefix}_mean${name}.npy`;
       const varName = `${prefix}_variance${name}.npy`;
       const scale =
-          await utils.buildConstantFromNpy(builder, new URL(scaleName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(scaleName, url));
       const bias =
-          await utils.buildConstantFromNpy(builder, new URL(biasName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(biasName, url));
       const mean =
-          await utils.buildConstantFromNpy(builder, new URL(meanName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(meanName, url));
       const variance =
-          await utils.buildConstantFromNpy(builder, new URL(varName, url));
+          await utils.buildConstantFromNpy(device, builder, new URL(varName, url));
 
       if (!fused) {
         const batchNorm = builder.batchNormalization(
@@ -79,10 +82,10 @@ describe('test tinyYolov2 nchw', function() {
     async function buildTinyYolo() {
       const mulScale = builder.constant(
           {type: 'float32', dimensions: [1]},
-          new Float32Array([0.003921568859368563]));
+          {resource: await utils.createGPUBuffer(device, utils.sizeOfShape([1]), [0.003921568859368563])});
       const addBias = builder.constant(
           {type: 'float32', dimensions: [3, 1, 1]},
-          new Float32Array([0, 0, 0]));
+          {resource: await utils.createGPUBuffer(device, utils.sizeOfShape([3, 1, 1]), [0, 0, 0])});
       const poolOptions = {
         windowDimensions: [2, 2],
         strides: [2, 2],
@@ -119,8 +122,10 @@ describe('test tinyYolov2 nchw', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      graph.dispose();
-      fusedGraph.dispose();
+      if ('dispose' in graph) {
+        graph.dispose();
+        fusedGraph.dispose();
+      }
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
@@ -133,17 +138,18 @@ describe('test tinyYolov2 nchw', function() {
   });
 
   async function testTinyYoloV2(graph, inputFile, expectedFile) {
+    const inputBuffer = await utils.createGPUBufferFromNpy(device, new URL(inputFile, url));
     const inputs = {
-      'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url)),
+      'input': {resource: inputBuffer},
     };
-    const outputs = {
-      'conv': new Float32Array(utils.sizeOfShape([1, 125, 13, 13])),
-    };
+    const outputBuffer = await utils.createGPUBuffer(device, utils.sizeOfShape([1, 125, 13, 13]));
+    const outputs = {'conv': {resource: outputBuffer}};
     graph.compute(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(
-        outputs.conv, expected,
+        await utils.readbackGPUBuffer(device, utils.sizeOfShape([1, 125, 13, 13]), outputBuffer),
+        expected,
         // refer to onnx
         // https://github.com/onnx/models/blob/master/workflow_scripts/ort_test_dir_utils.py#L239
         new utils.AccuracyCriterion(1e-3, 1e-3));

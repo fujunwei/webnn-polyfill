@@ -90,8 +90,10 @@ describe('test squeezenet1.0 nhwc', function() {
   after(() => {
     if (typeof _tfengine !== 'undefined') {
       // Check memory leaks.
-      // graph.dispose();
-      // fusedGraph.dispose();
+      if ('dispose' in graph) {
+        graph.dispose();
+        fusedGraph.dispose();
+      }
       const afterNumTensors = _tfengine.memory().numTensors;
       const afterNumBytes = _tfengine.memory().numBytes;
       assert(
