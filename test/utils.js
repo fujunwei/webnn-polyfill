@@ -227,12 +227,12 @@ export async function createGPUBuffer(device, size, data = undefined) {
   return gpuBuffer;
 }
 
-export async function readbackGPUBuffer(device, size, gpuBuffer) {
-  const sizeInBytes = size * Float32Array.BYTES_PER_ELEMENT;
+export async function readbackGPUBuffer(device, size, gpuBuffer, typedArrayConstructor = Float32Array) {
+  const sizeInBytes = size * typedArrayConstructor.BYTES_PER_ELEMENT;
   const readbackBuffer = device.createBuffer({size: sizeInBytes, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST});
   const readbackEncoder = device.createCommandEncoder();
   readbackEncoder.copyBufferToBuffer(gpuBuffer, 0, readbackBuffer, 0, sizeInBytes);
   device.queue.submit([readbackEncoder.finish()]);
   await readbackBuffer.mapAsync(GPUMapMode.READ);
-  return new Float32Array(readbackBuffer.getMappedRange());
+  return new typedArrayConstructor(readbackBuffer.getMappedRange());
 }
