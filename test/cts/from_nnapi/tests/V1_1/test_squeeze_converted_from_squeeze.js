@@ -2,10 +2,10 @@
 import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
-describe('CTS converted from NNAPI CTS', function() {
+describe('CTS converted from NNAPI CTS', async function() {
   const context = navigator.ml.createContext();
 
-  it('test squeeze converted from squeeze test', function() {
+  it('test squeeze converted from squeeze test', async function() {
     // Converted test case (from: V1_1/squeeze.mod.py)
     const builder = new MLGraphBuilder(context);
     const input = builder.input('input', {type: 'float32', dimensions: [4, 1, 1, 2]});
@@ -15,7 +15,7 @@ describe('CTS converted from NNAPI CTS', function() {
     const output = builder.squeeze(input, {'axes': squeezeDims});
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([4, 2]))};
-    graph.compute({'input': inputData}, outputs);
+    await graph.computeAsync({'input': inputData}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 });

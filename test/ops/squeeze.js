@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test squeeze', function() {
+describe('test squeeze', async function() {
   const context = navigator.ml.createContext();
 
   function testSqueeze(oldShape, axes, expectedShape) {
@@ -16,23 +16,23 @@ describe('test squeeze', function() {
     }
     const inputs = {'x': inputBuffer};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expectedShape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, inputBuffer);
   }
 
-  it('squeeze one dimension by default', function() {
+  it('squeeze one dimension by default', async function() {
     testSqueeze([1, 3, 4, 5], undefined, [3, 4, 5]);
   });
 
-  it('squeeze one dimension with axes', function() {
+  it('squeeze one dimension with axes', async function() {
     testSqueeze([1, 3, 1, 5], [0], [3, 1, 5]);
   });
 
-  it('squeeze two dimensions by default', function() {
+  it('squeeze two dimensions by default', async function() {
     testSqueeze([1, 3, 1, 5], undefined, [3, 5]);
   });
 
-  it('squeeze two dimensions with axes', function() {
+  it('squeeze two dimensions with axes', async function() {
     testSqueeze([1, 3, 1, 5], [0, 2], [3, 5]);
   });
 });

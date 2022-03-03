@@ -1,10 +1,10 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test max', function() {
+describe('test max', async function() {
   const context = navigator.ml.createContext();
 
-  it('max', function() {
+  it('max', async function() {
     const builder = new MLGraphBuilder(context);
     const a = builder.input('a', {type: 'float32', dimensions: [3, 4, 5]});
     const b = builder.input('b', {type: 'float32', dimensions: [3, 4, 5]});
@@ -41,7 +41,7 @@ describe('test max', function() {
       ]),
     };
     const outputs = {c: new Float32Array(utils.sizeOfShape([3, 4, 5]))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected = [
       0.54270846, 0.3356357,   0.17466596, 1.6710619,   1.3720452,  1.4024457,
       -0.5183214, -0.26632488, 0.16786452, -0.2980101,  0.12268824, 1.8612522,
@@ -57,7 +57,7 @@ describe('test max', function() {
     utils.checkValue(outputs.c, expected);
   });
 
-  it('max broadcast', function() {
+  it('max broadcast', async function() {
     const builder = new MLGraphBuilder(context);
     const a = builder.input('a', {type: 'float32', dimensions: [3, 4, 5]});
     const b = builder.input('b', {type: 'float32', dimensions: [5]});
@@ -87,7 +87,7 @@ describe('test max', function() {
       ]),
     };
     const outputs = {c: new Float32Array(utils.sizeOfShape([3, 4, 5]))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected = [
       0.67538136, 0.3535401,  1.0303422, -0.24858657, 0.36215156,
       0.67538136, 1.540389,   1.9143543, 0.4806893,   0.0123093,

@@ -605,7 +605,7 @@ def DumpCtsTest(example, test, fused):
                        str(example.testName))
         if testIndex > 0:
             testPurpose = "%s/%d" % (testPurpose, testIndex)
-        IndentedPrint("it('%s', function() {" % testPurpose,
+        IndentedPrint("it('%s', async function() {" % testPurpose,
                       indent=2, file=test)
         IndentedPrint("// Converted test case (from: %s/%s)" % \
                       (tg.FileNames.version,
@@ -750,7 +750,7 @@ def DumpCtsTest(example, test, fused):
             outputStr = ', '.join(outputNameBufferList)
             IndentedPrint(
                 "const outputs = {%s};" % outputStr, indent=4, file=test)            
-        IndentedPrint("graph.compute({%s}, outputs);" % \
+        IndentedPrint("await graph.computeAsync({%s}, outputs);" % \
                       ', '.join(computeParamsList), indent=4, file=test)
         # Check compute output
         criteria = 'utils.ctsFp32RestrictAccuracyCriteria'

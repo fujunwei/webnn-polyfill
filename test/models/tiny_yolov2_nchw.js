@@ -5,7 +5,7 @@ const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/tiny_yolov2_nchw';
 
-describe('test tinyYolov2 nchw', function() {
+describe('test tinyYolov2 nchw', async function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
   let graph;
@@ -139,7 +139,7 @@ describe('test tinyYolov2 nchw', function() {
     const outputs = {
       'conv': new Float32Array(utils.sizeOfShape([1, 125, 13, 13])),
     };
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(

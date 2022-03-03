@@ -5,7 +5,7 @@ const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/mobilenetv2_nchw';
 
-describe('test mobilenetv2 nchw', function() {
+describe('test mobilenetv2 nchw', async function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
   let graph;
@@ -159,13 +159,13 @@ describe('test mobilenetv2 nchw', function() {
       'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url)),
     };
     const outputs = {'gemm': new Float32Array(utils.sizeOfShape([1, 1000]))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(outputs.gemm, expected, utils.modelFp32AccuracyCriteria);
   }
 
-  it('test_data_set_0', async function() {
+  it('test_data_set_0', function() {
     await testMobileNetV2(
         graph, `${testDataDir}/test_data_set/0/input_0.npy`,
         `${testDataDir}/test_data_set/0/output_0.npy`);

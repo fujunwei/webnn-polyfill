@@ -3,7 +3,7 @@
 const expect = chai.expect;
 const assert = chai.assert;
 
-describe('test MLGraphBuilder', function() {
+describe('test MLGraphBuilder', async function() {
   const context = navigator.ml.createContext();
   const builder = new MLGraphBuilder(context);
 

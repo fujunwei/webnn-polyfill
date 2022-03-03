@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test slice', function() {
+describe('test slice', async function() {
   const context = navigator.ml.createContext();
 
   function testSlice(
@@ -12,11 +12,11 @@ describe('test slice', function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(inputData)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expectedShape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 
-  it('slice default axes', function() {
+  it('slice default axes', async function() {
     const inputShape = [3, 4, 5];
     const inputData = [
       1.3165863e+00,  4.1239005e-02,  4.6697399e-01,  -6.6145003e-02,
@@ -51,7 +51,7 @@ describe('test slice', function() {
         expected);
   });
 
-  it('slice with negative starts', function() {
+  it('slice with negative starts', async function() {
     const inputShape = [3, 4, 5];
     const inputData = [
       1.3165863e+00,  4.1239005e-02,  4.6697399e-01,  -6.6145003e-02,
@@ -86,7 +86,7 @@ describe('test slice', function() {
         expected);
   });
 
-  it('slice with axes', function() {
+  it('slice with axes', async function() {
     const inputShape = [3, 4, 5];
     const inputData = [
       1.3165863e+00,  4.1239005e-02,  4.6697399e-01,  -6.6145003e-02,
@@ -123,7 +123,7 @@ describe('test slice', function() {
         inputShape, inputData, starts, sizes, axes, expectedShape, expected);
   });
 
-  it('slice with negative axes', function() {
+  it('slice with negative axes', async function() {
     const inputShape = [3, 4, 5];
     const inputData = [
       1.3165863e+00,  4.1239005e-02,  4.6697399e-01,  -6.6145003e-02,
@@ -160,7 +160,7 @@ describe('test slice', function() {
         inputShape, inputData, starts, sizes, axes, expectedShape, expected);
   });
 
-  it('slice with -1 sizes', function() {
+  it('slice with -1 sizes', async function() {
     const inputShape = [3, 4, 5];
     const inputData = [
       1.3165863e+00,  4.1239005e-02,  4.6697399e-01,  -6.6145003e-02,

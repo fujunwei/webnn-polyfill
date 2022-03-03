@@ -2,10 +2,10 @@
 import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
-describe('CTS converted from NNAPI CTS', function() {
+describe('CTS converted from NNAPI CTS', async function() {
   const context = navigator.ml.createContext();
 
-  it('test pow converted from pow test', function() {
+  it('test pow converted from pow test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
     const builder = new MLGraphBuilder(context);
     const base = builder.input('base', {type: 'float32', dimensions: [2, 1]});
@@ -16,11 +16,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const output = builder.pow(base, exponent);
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([2, 1]))};
-    graph.compute({'base': baseData, 'exponent': exponentData}, outputs);
+    await graph.computeAsync({'base': baseData, 'exponent': exponentData}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test pow converted from pow_relaxed test', function() {
+  it('test pow converted from pow_relaxed test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
     const builder = new MLGraphBuilder(context);
     const base = builder.input('base', {type: 'float32', dimensions: [2, 1]});
@@ -31,11 +31,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const output = builder.pow(base, exponent);
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([2, 1]))};
-    graph.compute({'base': baseData, 'exponent': exponentData}, outputs);
+    await graph.computeAsync({'base': baseData, 'exponent': exponentData}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
-  it('test pow converted from pow_2 test', function() {
+  it('test pow converted from pow_2 test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
     const builder = new MLGraphBuilder(context);
     const base = builder.input('base', {type: 'float32', dimensions: [2, 1]});
@@ -46,11 +46,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const output1 = builder.pow(base, exponent1);
     const graph = builder.build({output1});
     const outputs = {output1: new Float32Array(utils.sizeOfShape([2, 2]))};
-    graph.compute({'base': baseData, 'exponent1': exponent1Data}, outputs);
+    await graph.computeAsync({'base': baseData, 'exponent1': exponent1Data}, outputs);
     utils.checkValue(outputs.output1, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test pow converted from pow_relaxed_2 test', function() {
+  it('test pow converted from pow_relaxed_2 test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
     const builder = new MLGraphBuilder(context);
     const base = builder.input('base', {type: 'float32', dimensions: [2, 1]});
@@ -61,11 +61,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const output1 = builder.pow(base, exponent1);
     const graph = builder.build({output1});
     const outputs = {output1: new Float32Array(utils.sizeOfShape([2, 2]))};
-    graph.compute({'base': baseData, 'exponent1': exponent1Data}, outputs);
+    await graph.computeAsync({'base': baseData, 'exponent1': exponent1Data}, outputs);
     utils.checkValue(outputs.output1, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
-  it('test pow converted from pow_3 test', function() {
+  it('test pow converted from pow_3 test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
     const builder = new MLGraphBuilder(context);
     const base = builder.input('base', {type: 'float32', dimensions: [2, 1]});
@@ -76,11 +76,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const output2 = builder.pow(base, exponent2);
     const graph = builder.build({output2});
     const outputs = {output2: new Float32Array(utils.sizeOfShape([3, 2, 2]))};
-    graph.compute({'base': baseData, 'exponent2': exponent2Data}, outputs);
+    await graph.computeAsync({'base': baseData, 'exponent2': exponent2Data}, outputs);
     utils.checkValue(outputs.output2, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test pow converted from pow_relaxed_3 test', function() {
+  it('test pow converted from pow_relaxed_3 test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
     const builder = new MLGraphBuilder(context);
     const base = builder.input('base', {type: 'float32', dimensions: [2, 1]});
@@ -91,7 +91,7 @@ describe('CTS converted from NNAPI CTS', function() {
     const output2 = builder.pow(base, exponent2);
     const graph = builder.build({output2});
     const outputs = {output2: new Float32Array(utils.sizeOfShape([3, 2, 2]))};
-    graph.compute({'base': baseData, 'exponent2': exponent2Data}, outputs);
+    await graph.computeAsync({'base': baseData, 'exponent2': exponent2Data}, outputs);
     utils.checkValue(outputs.output2, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 });

@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test tanh', function() {
+describe('test tanh', async function() {
   const context = navigator.ml.createContext();
   function testTanh(input, expected, shape) {
     const builder = new MLGraphBuilder(context);
@@ -10,14 +10,14 @@ describe('test tanh', function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(input)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(shape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
-  it('tanh 1d', function() {
+  it('tanh 1d', async function() {
     testTanh([-1, 0, 1], [-0.76159418, 0., 0.76159418], [3]);
   });
 
-  it('tanh 3d', function() {
+  it('tanh 3d', async function() {
     testTanh(
         [
           0.15102264,  -1.1556778,  -0.0657572,  -0.04362043, 1.13937,

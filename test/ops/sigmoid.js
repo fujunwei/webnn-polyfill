@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test sigmoid', function() {
+describe('test sigmoid', async function() {
   const context = navigator.ml.createContext();
   async function testSigmoid(input, expected, shape) {
     const builder = new MLGraphBuilder(context);
@@ -10,7 +10,7 @@ describe('test sigmoid', function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(input)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(shape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
   it('sigmoid 1d', async function() {

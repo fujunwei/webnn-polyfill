@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test concat', function() {
+describe('test concat', async function() {
   const context = navigator.ml.createContext();
 
   function testConcatInputs(tensors, expected) {
@@ -17,11 +17,11 @@ describe('test concat', function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape(expected.shape)),
     };
-    graph.compute(namedInputs, outputs);
+    await graph.computeAsync(namedInputs, outputs);
     utils.checkValue(outputs.output, expected.value);
   }
 
-  it('concat 1d', function() {
+  it('concat 1d', async function() {
     const tensors = [
       {desc: {type: 'float32', dimensions: [2]}, value: [1, 2]},
       {desc: {type: 'float32', dimensions: [2]}, value: [3, 4]},
@@ -30,7 +30,7 @@ describe('test concat', function() {
     testConcatInputs(tensors, expected);
   });
 
-  it('concat 2d', function() {
+  it('concat 2d', async function() {
     const tensors = [
       {desc: {type: 'float32', dimensions: [2, 2]}, value: [1, 2, 3, 4]},
       {desc: {type: 'float32', dimensions: [2, 2]}, value: [5, 6, 7, 8]},
@@ -44,7 +44,7 @@ describe('test concat', function() {
     }
   });
 
-  it('concat 3d', function() {
+  it('concat 3d', async function() {
     const tensors = [
       {
         desc: {type: 'float32', dimensions: [2, 2, 2]},

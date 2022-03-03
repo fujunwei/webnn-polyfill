@@ -2,10 +2,10 @@
 import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
-describe('CTS converted from NNAPI CTS', function() {
+describe('CTS converted from NNAPI CTS', async function() {
   const context = navigator.ml.createContext();
 
-  it('test split converted from split_float_4 test', function() {
+  it('test split converted from split_float_4 test', async function() {
     // Converted test case (from: V1_2/split_float_4.mod.py)
     const builder = new MLGraphBuilder(context);
     const input0 = builder.input('input0', {type: 'float32', dimensions: [2, 2, 2]});
@@ -16,13 +16,13 @@ describe('CTS converted from NNAPI CTS', function() {
     const [output0, output1] = builder.split(input0, numSplits, {'axis': axis});
     const graph = builder.build({output0, output1});
     const outputs = {output0: new Float32Array(utils.sizeOfShape([2, 1, 2])), output1: new Float32Array(utils.sizeOfShape([2, 1, 2]))};
-    graph.compute({'input0': input0Data}, outputs);
+    await graph.computeAsync({'input0': input0Data}, outputs);
     for (let i = 0; i < 2; i++) {
       utils.checkValue(outputs[['output0', 'output1'][i]], expected[i], utils.ctsFp32RestrictAccuracyCriteria);
     }
   });
 
-  it('test split converted from split_float_4_relaxed test', function() {
+  it('test split converted from split_float_4_relaxed test', async function() {
     // Converted test case (from: V1_2/split_float_4.mod.py)
     const builder = new MLGraphBuilder(context);
     const input0 = builder.input('input0', {type: 'float32', dimensions: [2, 2, 2]});
@@ -33,7 +33,7 @@ describe('CTS converted from NNAPI CTS', function() {
     const [output0, output1] = builder.split(input0, numSplits, {'axis': axis});
     const graph = builder.build({output0, output1});
     const outputs = {output0: new Float32Array(utils.sizeOfShape([2, 1, 2])), output1: new Float32Array(utils.sizeOfShape([2, 1, 2]))};
-    graph.compute({'input0': input0Data}, outputs);
+    await graph.computeAsync({'input0': input0Data}, outputs);
     for (let i = 0; i < 2; i++) {
       utils.checkValue(outputs[['output0', 'output1'][i]], expected[i], utils.ctsFp32RelaxedAccuracyCriteria);
     }

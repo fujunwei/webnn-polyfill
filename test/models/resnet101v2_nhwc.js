@@ -7,7 +7,7 @@ const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/resnet101v2_nhwc';
 
-describe('test resnet101v2 nhwc', function() {
+describe('test resnet101v2 nhwc', async function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
   let graph;
@@ -205,7 +205,7 @@ describe('test resnet101v2 nhwc', function() {
       'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url))};
     const outputs = {
       'reshape': new Float32Array(utils.sizeOfShape([1, 1001]))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(

@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test pad', function() {
+describe('test pad', async function() {
   const context = navigator.ml.createContext();
 
   function testPad(input, paddings, options, expected) {
@@ -14,11 +14,11 @@ describe('test pad', function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(input.values)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expected.shape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, expected.values);
   }
 
-  it('pad default', function() {
+  it('pad default', async function() {
     testPad(
         {
           shape: [2, 3],
@@ -37,7 +37,7 @@ describe('test pad', function() {
         });
   });
 
-  it('pad constant model default value', function() {
+  it('pad constant model default value', async function() {
     testPad(
         {
           shape: [2, 3],
@@ -56,7 +56,7 @@ describe('test pad', function() {
         });
   });
 
-  it('pad constant model specified value', function() {
+  it('pad constant model specified value', async function() {
     testPad(
         {
           shape: [2, 3],
@@ -76,7 +76,7 @@ describe('test pad', function() {
         });
   });
 
-  it('pad edge mode', function() {
+  it('pad edge mode', async function() {
     testPad(
         {
           shape: [2, 3],
@@ -95,7 +95,7 @@ describe('test pad', function() {
         });
   });
 
-  it('pad reflection mode', function() {
+  it('pad reflection mode', async function() {
     testPad(
         {
           shape: [2, 3],
@@ -114,7 +114,7 @@ describe('test pad', function() {
         });
   });
 
-  it('pad symmetric mode', function() {
+  it('pad symmetric mode', async function() {
     testPad(
         {
           shape: [2, 3],

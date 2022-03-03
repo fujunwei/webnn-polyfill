@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test batchNormalization', function() {
+describe('test batchNormalization', async function() {
   const context = navigator.ml.createContext();
 
   function testBatchNorm(
@@ -31,11 +31,11 @@ describe('test batchNormalization', function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape(input.shape)),
     };
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.output, expected);
   }
 
-  it('batchNormalization nchw', function() {
+  it('batchNormalization nchw', async function() {
     const input = {
       shape: [1, 2, 1, 3],
       data: new Float32Array([-1, 0, 1, 2, 3, 4]),
@@ -77,7 +77,7 @@ describe('test batchNormalization', function() {
         input, mean, variance, expectedBias, undefined, bias, {}, 'relu');
   });
 
-  it('batchNormalization nhwc', function() {
+  it('batchNormalization nhwc', async function() {
     const input = {
       shape: [1, 1, 3, 2],
       data: new Float32Array([-1, 2, 0, 3, 1, 4]),
@@ -124,7 +124,7 @@ describe('test batchNormalization', function() {
         'relu');
   });
 
-  it('batchNormalization without options', function() {
+  it('batchNormalization without options', async function() {
     const input = {
       shape: [1, 2, 1, 3],
       data: new Float32Array([-1, 0, 1, 2, 3, 4]),
@@ -142,7 +142,7 @@ describe('test batchNormalization', function() {
     testBatchNorm(input, mean, variance, expected);
   });
 
-  it('batchNormalization with epsilon', function() {
+  it('batchNormalization with epsilon', async function() {
     const input = {
       shape: [2, 3, 4, 5],
       data: new Float32Array([

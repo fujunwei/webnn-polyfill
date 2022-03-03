@@ -9,7 +9,7 @@
   <div id="mocha"></div>
   <script src="https://unpkg.com/chai/chai.js"></script>
   <script src="https://unpkg.com/mocha/mocha.js"></script>
-  <script src="../dist/webnn-polyfill.js"></script>
+  <!-- <script src="../dist/webnn-polyfill.js"></script> -->
   <script type="module" src="./utils.js"></script>
   <script class="mocha-init">
     mocha.setup('bdd');
@@ -48,11 +48,12 @@
   <script type="module" src="./ops/transpose.js"></script>
   <script type="module" src="./ops/unary.js"></script>
   <script class="mocha-exec" type="module">
-    import {setPolyfillBackend} from './utils.js';
-    const backend = (new URLSearchParams(location.search)).get('backend');
-    setPolyfillBackend(backend).then(() => {
-      mocha.run();
-    });
+    mocha.run();
+    // import {setPolyfillBackend} from './utils.js';
+    // const backend = (new URLSearchParams(location.search)).get('backend');
+    // setPolyfillBackend(backend).then(() => {
+    //   mocha.run();
+    // });
   </script>
 </body>
 </html>

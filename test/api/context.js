@@ -2,7 +2,7 @@
 
 const expect = chai.expect;
 
-describe('test MLContext', function() {
+describe('test MLContext', async function() {
   it('navigator.ml should be a ML', function CheckML() {
     if (typeof window !== 'undefined') {
       expect(navigator.ml).to.be.an.instanceof(ML);

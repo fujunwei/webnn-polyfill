@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test split', function() {
+describe('test split', async function() {
   const context = navigator.ml.createContext();
 
   function testSplit(
@@ -21,13 +21,13 @@ describe('test split', function() {
       outputs[`split${i}`] =
           new Float32Array(utils.sizeOfShape(expectedArray[i].shape));
     }
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     for (let i = 0; i < splittedOperands.length; ++i) {
       utils.checkValue(outputs[`split${i}`], expectedArray[i].value);
     }
   }
 
-  it('split', function() {
+  it('split', async function() {
     testSplit(
         [6], [1, 2, 3, 4, 5, 6],
         [
@@ -43,7 +43,7 @@ describe('test split', function() {
         [2, 4]);
   });
 
-  it('split 2d', function() {
+  it('split 2d', async function() {
     testSplit(
         [2, 6], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         [

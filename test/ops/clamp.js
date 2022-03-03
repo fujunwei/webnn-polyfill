@@ -1,21 +1,21 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test clamp', function() {
+describe('test clamp', async function() {
   const context = navigator.ml.createContext();
 
-  function testClamp(inputShape, inputValue, expected, options = {}) {
+  async function testClamp(inputShape, inputValue, expected, options = {}) {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: inputShape});
     const y = builder.clamp(x, options);
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(inputValue)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(inputShape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 
-  it('clamp', function() {
+  it('clamp', async function() {
     testClamp([3], [-2, 0, 2], [-1, 0, 1], {minValue: -1, maxValue: 1});
     testClamp([3], [-1, 0, 1], [-1, 0, 1], {minValue: -5, maxValue: 5});
     testClamp([3], [-6, 0, 6], [-5, 0, 5], {minValue: -5, maxValue: 5});
@@ -53,7 +53,7 @@ describe('test clamp', function() {
         {minValue: -1, maxValue: 1});
   });
 
-  it('clamp with defaults', function() {
+  it('clamp with defaults', async function() {
     testClamp([3], [-1, 0, 1], [-1, 0, 1]);
     testClamp(
         [3, 4, 5],

@@ -5,7 +5,7 @@ const url = import.meta.url;
 const assert = chai.assert;
 const testDataDir = '../../test-data/models/squeezenet1.1_nchw';
 
-describe('test squeezenet1.1 nchw', function() {
+describe('test squeezenet1.1 nchw', async function() {
   // eslint-disable-next-line no-invalid-this
   this.timeout(0);
   let graph;
@@ -101,7 +101,7 @@ describe('test squeezenet1.1 nchw', function() {
     const outputs = {
       'reshape0': new Float32Array(utils.sizeOfShape([1, 1000])),
     };
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(

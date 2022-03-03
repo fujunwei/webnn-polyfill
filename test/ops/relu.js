@@ -1,10 +1,10 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test relu', function() {
+describe('test relu', async function() {
   const context = navigator.ml.createContext();
 
-  it('relu', function() {
+  it('relu', async function() {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: [3, 4, 5]});
     const y = builder.relu(x);
@@ -26,7 +26,7 @@ describe('test relu', function() {
       ]),
     };
     const outputs = {'y': new Float32Array(utils.sizeOfShape([3, 4, 5]))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expected = [
       0.,        0.6447428, 0.,         0.,         0.9777725, 0.,
       0.,        0.,        1.3725083,  0.,         0.,        0.,

@@ -2,10 +2,10 @@
 import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
-describe('CTS converted from NNAPI CTS', function() {
+describe('CTS converted from NNAPI CTS', async function() {
   const context = navigator.ml.createContext();
 
-  it('test l2Pool2d + clamp converted from l2_pool_float_large test', function() {
+  it('test l2Pool2d + clamp converted from l2_pool_float_large test', async function() {
     // Converted test case (from: V1_0/l2_pool_float_large.mod.py)
     const builder = new MLGraphBuilder(context);
     const op1 = builder.input('op1', {type: 'float32', dimensions: [1, 2, 2, 3]});
@@ -20,7 +20,7 @@ describe('CTS converted from NNAPI CTS', function() {
     const op3 = builder.clamp(interOut0);
     const graph = builder.build({op3});
     const outputs = {op3: new Float32Array(utils.sizeOfShape([1, 1, 1, 3]))};
-    graph.compute({'op1': op1Data}, outputs);
+    await graph.computeAsync({'op1': op1Data}, outputs);
     utils.checkValue(outputs.op3, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 });

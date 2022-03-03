@@ -1,7 +1,7 @@
 'use strict';
 import * as utils from '../utils.js';
 
-describe('test leakyRelu', function() {
+describe('test leakyRelu', async function() {
   const context = navigator.ml.createContext();
 
   function testLeakyRelu(input, expected, options = {}) {
@@ -11,11 +11,11 @@ describe('test leakyRelu', function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(input.value)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(input.shape))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 
-  it('leakyRelu', function() {
+  it('leakyRelu', async function() {
     testLeakyRelu(
         {shape: [3], value: [-1, 0, 1]}, [-0.1, 0., 1.], {alpha: 0.1});
     testLeakyRelu(
@@ -53,7 +53,7 @@ describe('test leakyRelu', function() {
         {alpha: 0.1});
   });
 
-  it('leakyRelu default', function() {
+  it('leakyRelu default', async function() {
     testLeakyRelu(
         {
           shape: [3, 4, 5],

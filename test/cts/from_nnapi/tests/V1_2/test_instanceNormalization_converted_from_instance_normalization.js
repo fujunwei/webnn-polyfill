@@ -2,10 +2,10 @@
 import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
-describe('CTS converted from NNAPI CTS', function() {
+describe('CTS converted from NNAPI CTS', async function() {
   const context = navigator.ml.createContext();
 
-  it('test instanceNormalization converted from instance_normalization_nhwc test', function() {
+  it('test instanceNormalization converted from instance_normalization_nhwc test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input = builder.input('input', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -18,11 +18,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out = builder.instanceNormalization(input, {'scale': param, 'bias': param1, 'epsilon': param2, 'layout': layout});
     const graph = builder.build({out});
     const outputs = {out: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input': inputData}, outputs);
+    await graph.computeAsync({'input': inputData}, outputs);
     utils.checkValue(outputs.out, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nhwc_relaxed test', function() {
+  it('test instanceNormalization converted from instance_normalization_nhwc_relaxed test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input = builder.input('input', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -35,11 +35,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out = builder.instanceNormalization(input, {'scale': param, 'bias': param1, 'epsilon': param2, 'layout': layout});
     const graph = builder.build({out});
     const outputs = {out: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input': inputData}, outputs);
+    await graph.computeAsync({'input': inputData}, outputs);
     utils.checkValue(outputs.out, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nchw test', function() {
+  it('test instanceNormalization converted from instance_normalization_nchw test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input = builder.input('input', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -52,11 +52,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out = builder.instanceNormalization(input, {'scale': param, 'bias': param1, 'epsilon': param2, 'layout': layout});
     const graph = builder.build({out});
     const outputs = {out: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input': inputData}, outputs);
+    await graph.computeAsync({'input': inputData}, outputs);
     utils.checkValue(outputs.out, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nchw_relaxed test', function() {
+  it('test instanceNormalization converted from instance_normalization_nchw_relaxed test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input = builder.input('input', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -69,11 +69,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out = builder.instanceNormalization(input, {'scale': param, 'bias': param1, 'epsilon': param2, 'layout': layout});
     const graph = builder.build({out});
     const outputs = {out: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input': inputData}, outputs);
+    await graph.computeAsync({'input': inputData}, outputs);
     utils.checkValue(outputs.out, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nhwc_2 test', function() {
+  it('test instanceNormalization converted from instance_normalization_nhwc_2 test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input1 = builder.input('input1', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -86,11 +86,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out1 = builder.instanceNormalization(input1, {'scale': param3, 'bias': param4, 'epsilon': param5, 'layout': layout});
     const graph = builder.build({out1});
     const outputs = {out1: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input1': input1Data}, outputs);
+    await graph.computeAsync({'input1': input1Data}, outputs);
     utils.checkValue(outputs.out1, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nhwc_relaxed_2 test', function() {
+  it('test instanceNormalization converted from instance_normalization_nhwc_relaxed_2 test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input1 = builder.input('input1', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -103,11 +103,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out1 = builder.instanceNormalization(input1, {'scale': param3, 'bias': param4, 'epsilon': param5, 'layout': layout});
     const graph = builder.build({out1});
     const outputs = {out1: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input1': input1Data}, outputs);
+    await graph.computeAsync({'input1': input1Data}, outputs);
     utils.checkValue(outputs.out1, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nchw_2 test', function() {
+  it('test instanceNormalization converted from instance_normalization_nchw_2 test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input1 = builder.input('input1', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -120,11 +120,11 @@ describe('CTS converted from NNAPI CTS', function() {
     const out1 = builder.instanceNormalization(input1, {'scale': param3, 'bias': param4, 'epsilon': param5, 'layout': layout});
     const graph = builder.build({out1});
     const outputs = {out1: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input1': input1Data}, outputs);
+    await graph.computeAsync({'input1': input1Data}, outputs);
     utils.checkValue(outputs.out1, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
-  it('test instanceNormalization converted from instance_normalization_nchw_relaxed_2 test', function() {
+  it('test instanceNormalization converted from instance_normalization_nchw_relaxed_2 test', async function() {
     // Converted test case (from: V1_2/instance_normalization.mod.py)
     const builder = new MLGraphBuilder(context);
     const input1 = builder.input('input1', {type: 'float32', dimensions: [2, 2, 2, 2]});
@@ -137,7 +137,7 @@ describe('CTS converted from NNAPI CTS', function() {
     const out1 = builder.instanceNormalization(input1, {'scale': param3, 'bias': param4, 'epsilon': param5, 'layout': layout});
     const graph = builder.build({out1});
     const outputs = {out1: new Float32Array(utils.sizeOfShape([2, 2, 2, 2]))};
-    graph.compute({'input1': input1Data}, outputs);
+    await graph.computeAsync({'input1': input1Data}, outputs);
     utils.checkValue(outputs.out1, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 });

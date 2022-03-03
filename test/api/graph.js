@@ -5,7 +5,7 @@ const assert = chai.assert;
 
 import * as utils from '../utils.js';
 
-describe('test MLGraph', function() {
+describe('test MLGraph', async function() {
   const context = navigator.ml.createContext();
   const builder = new MLGraphBuilder(context);
   const desc = {type: 'float32', dimensions: [2, 2]};
@@ -24,14 +24,14 @@ describe('test MLGraph', function() {
 
   it('MLGraph should have compute method', () => {
     const graph = builder.build({c});
-    expect(graph.compute).to.be.a('function');
+    expect(await graph.computeAsync).to.be.a('function');
   });
 
   it('MLGraph.compute should accept inputs and outputs', () => {
     const graph = builder.build({c});
     const inputs = {a: bufferA, b: bufferB};
     const outputs = {c: bufferC};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
   });
 
@@ -39,7 +39,7 @@ describe('test MLGraph', function() {
     const graph = builder.build({c, e});
     const inputs = {a: bufferA, b: bufferB};
     const outputs = {c: bufferC, e: bufferE};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
     utils.checkValue(outputs.e, expectedE);
   });
@@ -48,11 +48,11 @@ describe('test MLGraph', function() {
     const graph = builder.build({c, e});
     const inputs = {a: bufferA, b: bufferB};
     let outputs = {c: bufferC};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
     expect(outputs).not.to.have.property('e');
     outputs = {e: bufferE};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.e, expectedE);
     expect(outputs).not.to.have.property('c');
   });
@@ -74,7 +74,7 @@ describe('test MLGraph', function() {
     };
     const shapeZ = [shapeX[0], shapeY[1]];
     const outputs = {z: new Float32Array(utils.sizeOfShape(shapeZ))};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     const expectedZ = new Array(utils.sizeOfShape(shapeZ)).fill(2);
     utils.checkValue(outputs.z, expectedZ);
   });
@@ -82,7 +82,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for non inputs', () => {
     const graph = builder.build({c});
     try {
-      graph.compute();
+      await graph.computeAsync();
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -93,7 +93,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for empty inputs', () => {
     const graph = builder.build({c});
     try {
-      graph.compute({}, {c: bufferC});
+      await graph.computeAsync({}, {c: bufferC});
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -104,7 +104,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for non outputs', () => {
     const graph = builder.build({c});
     try {
-      graph.compute({a: bufferA, b: bufferB});
+      await graph.computeAsync({a: bufferA, b: bufferB});
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -115,7 +115,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for invalid input name', () => {
     const graph = builder.build({c});
     try {
-      graph.compute({x: bufferA}, {c: bufferC});
+      await graph.computeAsync({x: bufferA}, {c: bufferC});
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -126,7 +126,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for missing input', () => {
     const graph = builder.build({c});
     try {
-      graph.compute({a: bufferA}, {c: bufferC});
+      await graph.computeAsync({a: bufferA}, {c: bufferC});
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -137,7 +137,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for no input resource', () => {
     const graph = builder.build({c});
     try {
-      graph.compute({a: {}, b: {}}, {c: bufferC});
+      await graph.computeAsync({a: {}, b: {}}, {c: bufferC});
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -148,7 +148,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for invalid input data', () => {
     const graph = builder.build({c});
     try {
-      graph.compute({a: 1, b: 2});
+      await graph.computeAsync({a: 1, b: 2});
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -159,7 +159,7 @@ describe('test MLGraph', function() {
   it('MLGraph.compute should throw for invalid input dimensions', () => {
     const graph = builder.build({c});
     try {
-      graph.compute(
+      await graph.computeAsync(
           {
             a: {resource: bufferA, dimensions: [2]},
             b: {resource: bufferB, dimensions: [2]},
@@ -182,7 +182,7 @@ describe('test MLGraph', function() {
     const shapeZ = [shapeX[0], shapeY[1]];
     const outputs = {z: new Float32Array(utils.sizeOfShape(shapeZ))};
     try {
-      graph.compute(inputs, outputs);
+      await graph.computeAsync(inputs, outputs);
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -196,7 +196,7 @@ describe('test MLGraph', function() {
       const inputs = {a: bufferA, b: bufferB};
       const bufferC = new Float32Array(4);
       const outputs = {z: bufferC};
-      graph.compute(inputs, outputs);
+      await graph.computeAsync(inputs, outputs);
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -209,7 +209,7 @@ describe('test MLGraph', function() {
     try {
       const inputs = {a: bufferA, b: bufferB};
       const outputs = {c: []};
-      graph.compute(inputs, outputs);
+      await graph.computeAsync(inputs, outputs);
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -223,7 +223,7 @@ describe('test MLGraph', function() {
       const inputs = {a: bufferA, b: bufferB};
       const bufferC = new Float32Array(1);
       const outputs = {c: bufferC};
-      graph.compute(inputs, outputs);
+      await graph.computeAsync(inputs, outputs);
       assert.fail();
     } catch (err) {
       assert(!(err instanceof chai.AssertionError), 'No throwing');
@@ -243,22 +243,22 @@ describe('test MLGraph', function() {
     const graph = builder.build({c});
     let inputs = {a: bufferA};
     const outputs = {c: bufferC};
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
 
     // Change data of constant b should not impact graph compute.
     bufferB.set(new Array(4).fill(2));
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
 
     // Replace b with a new constant should not impact graph compute.
     b = builder.constant({type: 'float32', dimensions: [2, 2]}, bufferB);
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
 
     // Change opearnd type of b should not impact graph compute.
     b = builder.input('b', desc);
-    graph.compute(inputs, outputs);
+    await graph.computeAsync(inputs, outputs);
     utils.checkValue(outputs.c, expectedC);
 
     // Create new model with new b.
@@ -319,7 +319,7 @@ describe('test MLGraph', function() {
         output: new Float32Array(
             utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
       };
-      graph.compute(inputs, outputs);
+      await graph.computeAsync(inputs, outputs);
       const expected = [
         0.22391089,
         0.22391089,
