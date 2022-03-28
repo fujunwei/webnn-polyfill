@@ -215,15 +215,18 @@ export function createActivation(
 export async function createGPUBuffer(device, size, data = undefined) {
   const sizeInBytes = size * Float32Array.BYTES_PER_ELEMENT;
   const gpuBuffer = device.createBuffer({size: sizeInBytes, usage: GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST});
+
+  const uploadBuffer = device.createBuffer({size: sizeInBytes, usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC});
+  await uploadBuffer.mapAsync(GPUMapMode.WRITE);
   if (data !== undefined) {
-    const uploadBuffer = device.createBuffer({size: sizeInBytes, usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC});
-    await uploadBuffer.mapAsync(GPUMapMode.WRITE);
     new Float32Array(uploadBuffer.getMappedRange()).set(data);
-    uploadBuffer.unmap();
-    const uploadEncoder = device.createCommandEncoder();
-    uploadEncoder.copyBufferToBuffer(uploadBuffer, 0, gpuBuffer, 0, sizeInBytes);
-    device.queue.submit([uploadEncoder.finish()]);
+  } else {
+    new Float32Array(uploadBuffer.getMappedRange()).set([0]);
   }
+  uploadBuffer.unmap();
+  const uploadEncoder = device.createCommandEncoder();
+  uploadEncoder.copyBufferToBuffer(uploadBuffer, 0, gpuBuffer, 0, sizeInBytes);
+  device.queue.submit([uploadEncoder.finish()]);
   return gpuBuffer;
 }
 
