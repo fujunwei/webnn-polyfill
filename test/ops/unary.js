@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test element-wise unary operations', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
   function test(op, input, expected, shape) {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: shape});
@@ -10,7 +10,7 @@ describe('test element-wise unary operations', async function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(input)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(shape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 

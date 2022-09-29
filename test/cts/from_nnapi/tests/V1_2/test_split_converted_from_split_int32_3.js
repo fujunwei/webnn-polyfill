@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test split converted from split_int32_3 test', async function() {
     // Converted test case (from: V1_2/split_int32_3.mod.py)
@@ -16,7 +16,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const [output0, output1, output2] = builder.split(input0, numSplits, {'axis': axis});
     const graph = builder.build({output0, output1, output2});
     const outputs = {output0: new Int32Array(utils.sizeOfShape([2, 1])), output1: new Int32Array(utils.sizeOfShape([2, 1])), output2: new Int32Array(utils.sizeOfShape([2, 1]))};
-    await graph.computeAsync({'input0': input0Data}, outputs);
+    await context.compute(graph, {'input0': input0Data}, outputs);
     for (let i = 0; i < 3; i++) {
       utils.checkValue(outputs[['output0', 'output1', 'output2'][i]], expected[i], utils.ctsFp32RestrictAccuracyCriteria);
     }
@@ -33,7 +33,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const [output0, output1, output2] = builder.split(input0, numSplits, {'axis': axis});
     const graph = builder.build({output0, output1, output2});
     const outputs = {output0: new Int32Array(utils.sizeOfShape([2, 1])), output1: new Int32Array(utils.sizeOfShape([2, 1])), output2: new Int32Array(utils.sizeOfShape([2, 1]))};
-    await graph.computeAsync({'input0': input0Data}, outputs);
+    await context.compute(graph, {'input0': input0Data}, outputs);
     for (let i = 0; i < 3; i++) {
       utils.checkValue(outputs[['output0', 'output1', 'output2'][i]], expected[i], utils.ctsFp32RelaxedAccuracyCriteria);
     }

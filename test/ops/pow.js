@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test pow', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
   async function testSqrt(input, expected, shape) {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: shape});
@@ -12,7 +12,7 @@ describe('test pow', async function() {
     const graph = builder.build({z});
     const inputs = {'x': new Float32Array(input)};
     const outputs = {'z': new Float32Array(utils.sizeOfShape(shape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.z, expected);
   }
   it('sqrt 1d', async function() {
@@ -61,7 +61,7 @@ describe('test pow', async function() {
     const graph = builder.build({z});
     const inputs = {'x': new Float32Array([1, 2, 3])};
     const outputs = {'z': new Float32Array(3)};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.z, [1., 32., 729.]);
   });
 
@@ -74,7 +74,7 @@ describe('test pow', async function() {
     const graph = builder.build({z});
     const inputs = {'x': new Float32Array([1, 2, 3])};
     const outputs = {'z': new Float32Array(3)};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.z, [1., 4., 9.]);
   });
 
@@ -87,7 +87,7 @@ describe('test pow', async function() {
     const graph = builder.build({z});
     const inputs = {'x': new Float32Array([1, 2, 3, 4, 5, 6])};
     const outputs = {'z': new Float32Array(utils.sizeOfShape([2, 3]))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.z, [1., 4., 27., 4., 25., 216.]);
   });
 });

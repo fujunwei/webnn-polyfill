@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test averagePool2d + clamp converted from avg_pool_float_4 test', async function() {
     // Converted test case (from: V1_0/avg_pool_float_4.mod.py)
@@ -18,7 +18,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output = builder.clamp(interOut0, {minValue: 0, maxValue: 6});
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([5, 11, 13, 3]))};
-    await graph.computeAsync({'i0': i0Data}, outputs);
+    await context.compute(graph, {'i0': i0Data}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 });

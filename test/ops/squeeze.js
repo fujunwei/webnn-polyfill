@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test squeeze', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testSqueeze(oldShape, axes, expectedShape) {
     const builder = new MLGraphBuilder(context);
@@ -16,7 +16,7 @@ describe('test squeeze', async function() {
     }
     const inputs = {'x': inputBuffer};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expectedShape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, inputBuffer);
   }
 

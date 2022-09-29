@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test matmul + add + clamp converted from fully_connected_float_large_weights_as_inputs test', async function() {
     // Converted test case (from: V1_0/fully_connected_float_large_weights_as_inputs.mod.py)
@@ -20,7 +20,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const op3 = builder.clamp(interOut1);
     const graph = builder.build({op3});
     const outputs = {op3: new Float32Array(utils.sizeOfShape([1, 1]))};
-    await graph.computeAsync({'op1': op1Data, 'op2': op2Data, 'b0': b0Data}, outputs);
+    await context.compute(graph, {'op1': op1Data, 'op2': op2Data, 'b0': b0Data}, outputs);
     utils.checkValue(outputs.op3, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 });

@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test slice', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testSlice(
       inputShape, inputData, starts, sizes, axes, expectedShape, expected) {
@@ -12,7 +12,7 @@ describe('test slice', async function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(inputData)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expectedShape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 

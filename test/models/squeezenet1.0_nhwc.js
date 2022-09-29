@@ -17,7 +17,7 @@ describe('test squeezenet1.0 nhwc', async function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
     const builder = new MLGraphBuilder(context);
     let fusedConv = false;
 
@@ -106,7 +106,7 @@ describe('test squeezenet1.0 nhwc', async function() {
           await utils.createTypedArrayFromNpy(new URL(inputFile, url)),
     };
     const outputs = {'softmax': new Float32Array(utils.sizeOfShape([1, 1001]))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(

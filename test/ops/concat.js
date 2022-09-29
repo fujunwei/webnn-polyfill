@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test concat', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testConcatInputs(tensors, expected) {
     const builder = new MLGraphBuilder(context);
@@ -17,7 +17,7 @@ describe('test concat', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape(expected.shape)),
     };
-    await graph.computeAsync(namedInputs, outputs);
+    await context.compute(graph, namedInputs, outputs);
     utils.checkValue(outputs.output, expected.value);
   }
 

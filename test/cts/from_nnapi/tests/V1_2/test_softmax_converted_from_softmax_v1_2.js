@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test softmax converted from softmax_v1_2_axis_dim2_axis1 test', async function() {
     // Converted test case (from: V1_2/softmax_v1_2.mod.py)
@@ -14,7 +14,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const op2 = builder.softmax(op1);
     const graph = builder.build({op2});
     const outputs = {op2: new Float32Array(utils.sizeOfShape([2, 5]))};
-    await graph.computeAsync({'op1': op1Data}, outputs);
+    await context.compute(graph, {'op1': op1Data}, outputs);
     utils.checkValue(outputs.op2, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
@@ -27,7 +27,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const op2 = builder.softmax(op1);
     const graph = builder.build({op2});
     const outputs = {op2: new Float32Array(utils.sizeOfShape([2, 5]))};
-    await graph.computeAsync({'op1': op1Data}, outputs);
+    await context.compute(graph, {'op1': op1Data}, outputs);
     utils.checkValue(outputs.op2, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
@@ -40,7 +40,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const op2 = builder.softmax(op1);
     const graph = builder.build({op2});
     const outputs = {op2: new Float32Array(utils.sizeOfShape([2, 5]))};
-    await graph.computeAsync({'op1': op1Data}, outputs);
+    await context.compute(graph, {'op1': op1Data}, outputs);
     utils.checkValue(outputs.op2, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
@@ -53,7 +53,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const op2 = builder.softmax(op1);
     const graph = builder.build({op2});
     const outputs = {op2: new Float32Array(utils.sizeOfShape([2, 5]))};
-    await graph.computeAsync({'op1': op1Data}, outputs);
+    await context.compute(graph, {'op1': op1Data}, outputs);
     utils.checkValue(outputs.op2, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 });

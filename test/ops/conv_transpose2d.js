@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test convTranspose2d', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testConvTranspose2d(
       input, filter, expected, options = {}, bias = undefined,
@@ -41,7 +41,7 @@ describe('test convTranspose2d', async function() {
     const graph = builder.build({y});
     const inputs = {'x': input.data};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expected.shape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, expected.data);
   }
 

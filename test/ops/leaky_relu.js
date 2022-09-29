@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test leakyRelu', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testLeakyRelu(input, expected, options = {}) {
     const builder = new MLGraphBuilder(context);
@@ -11,7 +11,7 @@ describe('test leakyRelu', async function() {
     const graph = builder.build({y});
     const inputs = {'x': new Float32Array(input.value)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(input.shape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 

@@ -4,7 +4,7 @@ const expect = chai.expect;
 const assert = chai.assert;
 
 describe('test MLGraphBuilder', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
   const builder = new MLGraphBuilder(context);
 
   // test input

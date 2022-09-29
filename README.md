@@ -26,7 +26,7 @@ If not set, the built `webnn-polyfill.js` uses WebGL as default backend, you can
 
 ```js
     const backend = 'cpu';
-    const tf = navigator.ml.createContext().tf;
+    const tf = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'}).tf;
     await tf.setBackend(backend);
     await tf.ready();
 ```

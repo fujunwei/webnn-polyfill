@@ -19,7 +19,7 @@ describe('test resnet50v2 nchw', async function() {
       beforeNumBytes = _tfengine.memory().numBytes;
       beforeNumTensors = _tfengine.memory().numTensors;
     }
-    const context = navigator.ml.createContext();
+    const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
     const builder = new MLGraphBuilder(context);
     let fusedBatchNorm = false;
 
@@ -194,7 +194,7 @@ describe('test resnet50v2 nchw', async function() {
       'input': await utils.createTypedArrayFromNpy(new URL(inputFile, url))};
     const outputs = {
       'gemm': new Float32Array(utils.sizeOfShape([1, 1000]))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected =
         await utils.createTypedArrayFromNpy(new URL(expectedFile, url));
     utils.checkValue(

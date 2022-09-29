@@ -17,7 +17,7 @@ describe('test MLContext', async function() {
   });
 
   it('ml.createContext should return a MLContext', () => {
-    expect(navigator.ml.createContext()).to.be.an.instanceof(MLContext);
+    expect(navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'})).to.be.an.instanceof(MLContext);
   });
 
   it('ml.createContext should support MLContextOptions', async () => {

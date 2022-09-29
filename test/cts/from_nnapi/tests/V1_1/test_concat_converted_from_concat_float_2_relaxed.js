@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test concat converted from concat_float_2_relaxed test', async function() {
     // Converted test case (from: V1_1/concat_float_2_relaxed.mod.py)
@@ -17,7 +17,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output = builder.concat([input1, input2], axis0);
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([92, 230]))};
-    await graph.computeAsync({'input1': input1Data, 'input2': input2Data}, outputs);
+    await context.compute(graph, {'input1': input1Data, 'input2': input2Data}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 });

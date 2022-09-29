@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test div', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('div', async function() {
     const builder = new MLGraphBuilder(context);
@@ -41,7 +41,7 @@ describe('test div', async function() {
       ]),
     };
     const outputs = {c: new Float32Array(utils.sizeOfShape([3, 4, 5]))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       5.2773511e-01,  1.4511688e+00,  -2.0733004e+00, 2.5239782e-02,
       1.2193620e+00,  1.0799783e+00,  -2.5929454e-01, -9.8252831e+00,
@@ -92,7 +92,7 @@ describe('test div', async function() {
       ]),
     };
     const outputs = {c: new Float32Array(utils.sizeOfShape([3, 4, 5]))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.825482,    0.20777069,  0.49395692,  -0.832231,   -1.0311644,
       -0.40846005, 0.68554676,  -0.18017694, -0.44017738, 0.11483412,

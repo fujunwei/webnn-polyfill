@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test batchNormalization', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testBatchNorm(
       input, mean, variance, expected, scale = undefined, bias = undefined,
@@ -31,7 +31,7 @@ describe('test batchNormalization', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape(input.shape)),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.output, expected);
   }
 

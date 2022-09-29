@@ -2,9 +2,9 @@
 import * as utils from '../utils.js';
 
 describe('test conv2d', async function() {
-  const context = navigator.ml.createContext();
+  const context = await navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
-  function testConv2d(
+  async function testConv2d(
       input, filter, expected, options = {}, bias = undefined,
       activation = undefined, fusion = false, activationOptions = {}) {
     const builder = new MLGraphBuilder(context);
@@ -38,10 +38,10 @@ describe('test conv2d', async function() {
         y = utils.createActivation(builder, activation, y, activationOptions);
       }
     }
-    const graph = builder.build({y});
+    const graph = await builder.build({y});
     const inputs = {'x': input.data};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(expected.shape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, expected.data);
   }
 
@@ -65,7 +65,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding explicit autoPad default padding', async function() {
@@ -91,7 +91,7 @@ describe('test conv2d', async function() {
         144, 153, 162,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding explicit autoPad', async function() {
@@ -117,7 +117,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nchw oihw', async function() {
@@ -144,7 +144,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nchw hwio', async function() {
@@ -171,7 +171,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nchw ohwi', async function() {
@@ -198,7 +198,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nchw ihwo', async function() {
@@ -225,7 +225,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nhwc oihw', async function() {
@@ -252,7 +252,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nhwc hwio', async function() {
@@ -279,7 +279,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nhwc ohwi', async function() {
@@ -306,7 +306,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with padding nhwc ihwo', async function() {
@@ -333,7 +333,7 @@ describe('test conv2d', async function() {
         117, 81, 93, 144, 153, 162, 111, 72, 111, 117, 123, 84,
       ],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding default', async function() {
@@ -352,7 +352,7 @@ describe('test conv2d', async function() {
       shape: [1, 1, 3, 3],
       data: [54., 63., 72., 99., 108., 117., 144., 153., 162.],
     };
-    testConv2d(input, filter, expected);
+    await testConv2d(input, filter, expected);
   });
 
   it('conv2d without padding nchw hwio', async function() {
@@ -375,7 +375,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding nchw ohwi', async function() {
@@ -398,7 +398,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding nchw ihwo', async function() {
@@ -421,7 +421,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding nhwc oihw', async function() {
@@ -444,7 +444,7 @@ describe('test conv2d', async function() {
       shape: [1, 3, 3, 1],
       data: [54., 63., 72., 99., 108., 117., 144., 153., 162.],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding nhwc hwio', async function() {
@@ -467,7 +467,7 @@ describe('test conv2d', async function() {
       shape: [1, 3, 3, 1],
       data: [54., 63., 72., 99., 108., 117., 144., 153., 162.],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding nhwc ohwi', async function() {
@@ -490,7 +490,7 @@ describe('test conv2d', async function() {
       shape: [1, 3, 3, 1],
       data: [54., 63., 72., 99., 108., 117., 144., 153., 162.],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d without padding nhwc ihwo', async function() {
@@ -513,7 +513,7 @@ describe('test conv2d', async function() {
       shape: [1, 3, 3, 1],
       data: [54., 63., 72., 99., 108., 117., 144., 153., 162.],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding default', async function() {
@@ -536,7 +536,7 @@ describe('test conv2d', async function() {
       padding: [1, 1, 1, 1],
       strides: [2, 2],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nchw hwio', async function() {
@@ -561,7 +561,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nchw ohwi', async function() {
@@ -586,7 +586,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nchw ihwo', async function() {
@@ -611,7 +611,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nhwc oihw', async function() {
@@ -636,7 +636,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'oihw',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nhwc hwio', async function() {
@@ -661,7 +661,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nhwc ohwi', async function() {
@@ -686,7 +686,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and padding nhwc ihwo', async function() {
@@ -711,7 +711,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding default', async function() {
@@ -734,7 +734,7 @@ describe('test conv2d', async function() {
       padding: [1, 2, 0, 1],
       strides: [2, 2],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nchw hwio', async function() {
@@ -759,7 +759,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nchw ohwi', async function() {
@@ -784,7 +784,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nchw ihwo', async function() {
@@ -809,7 +809,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nhwc oihw', async function() {
@@ -834,7 +834,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'oihw',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nhwc hwio', async function() {
@@ -859,7 +859,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nhwc ohwi', async function() {
@@ -884,7 +884,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with strides=2 and asymetric padding nhwc ihwo', async function() {
@@ -909,7 +909,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower default', async function() {
@@ -932,7 +932,7 @@ describe('test conv2d', async function() {
       autoPad: 'same-lower',
       strides: [2, 2],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nchw hwio', async function() {
@@ -957,7 +957,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nchw ohwi', async function() {
@@ -982,7 +982,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nchw ihwo', async function() {
@@ -1007,7 +1007,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nhwc oihw', async function() {
@@ -1032,7 +1032,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'oihw',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nhwc hwio', async function() {
@@ -1057,7 +1057,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nhwc ohwi', async function() {
@@ -1082,7 +1082,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-lower nhwc ihwo', async function() {
@@ -1107,7 +1107,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper default', async function() {
@@ -1130,7 +1130,7 @@ describe('test conv2d', async function() {
       autoPad: 'same-upper',
       strides: [2, 2],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nchw hwio', async function() {
@@ -1169,7 +1169,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nchw ohwi', async function() {
@@ -1208,7 +1208,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nchw ihwo', async function() {
@@ -1247,7 +1247,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nhwc oihw', async function() {
@@ -1286,7 +1286,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'oihw',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nhwc hwio', async function() {
@@ -1325,7 +1325,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nhwc ohwi', async function() {
@@ -1364,7 +1364,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d with autopad same-upper nhwc ihwo', async function() {
@@ -1403,7 +1403,7 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('fused depthwise conv2d default', async function() {
@@ -1459,13 +1459,13 @@ describe('test conv2d', async function() {
       data: [6010, 7046, 11000, 9000],
     };
     const options = {groups: 4};
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 4, 1, 1],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nchw hwio', async function() {
@@ -1525,13 +1525,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [4],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nchw ohwi', async function() {
@@ -1591,13 +1591,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 4, 1, 1],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nchw ihwo', async function() {
@@ -1657,13 +1657,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 4, 1, 1],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nhwc oihw', async function() {
@@ -1723,13 +1723,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'oihw',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 1, 4],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nhwc hwio', async function() {
@@ -1789,13 +1789,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'hwio',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 1, 4],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nhwc ohwi', async function() {
@@ -1855,13 +1855,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ohwi',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 1, 4],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused depthwise conv2d nhwc ihwo', async function() {
@@ -1921,13 +1921,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options, bias);
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias);
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 1, 4],
       data: [6, 6, 6, 6],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('depthwise conv2d nchw oihw', async function() {
@@ -1982,13 +1982,13 @@ describe('test conv2d', async function() {
       inputLayout: 'nchw',
       filterLayout: 'oihw',
     };
-    testConv2d(input, filter, expected, options);
-    testConv2d(input, filter, expected, options, undefined, 'relu', true);
+    await testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options, undefined, 'relu', true);
     expected = {
       shape: [1, 4, 1, 1],
       data: [6, 6, 6, 0],
     };
-    testConv2d(input, filter, expected, options, undefined, 'relu6', true);
+    await testConv2d(input, filter, expected, options, undefined, 'relu6', true);
   });
 
   it('fused depthwise conv2d explicit autoPad', async function() {
@@ -2056,8 +2056,8 @@ describe('test conv2d', async function() {
       padding: [0, 1, 0, 1],
       autoPad: 'explicit',
     };
-    testConv2d(input, filter, expected, options);
-    testConv2d(input, filter, expected, options, undefined, 'relu', true);
+    await testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options, undefined, 'relu', true);
     expected = {
       shape: [1, 2, 3, 3],
       data: [
@@ -2081,7 +2081,7 @@ describe('test conv2d', async function() {
         0,
       ],
     };
-    testConv2d(input, filter, expected, options, undefined, 'relu6', true);
+    await testConv2d(input, filter, expected, options, undefined, 'relu6', true);
   });
 
   it('fused depthwise conv2d same-upper autoPad', async function() {
@@ -2148,8 +2148,8 @@ describe('test conv2d', async function() {
       groups: 2,
       autoPad: 'same-upper',
     };
-    testConv2d(input, filter, expected, options);
-    testConv2d(input, filter, expected, options, undefined, 'relu', true);
+    await testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options, undefined, 'relu', true);
     expected = {
       shape: [1, 2, 3, 3],
       data: [
@@ -2173,7 +2173,7 @@ describe('test conv2d', async function() {
         0,
       ],
     };
-    testConv2d(input, filter, expected, options, undefined, 'relu6', true);
+    await testConv2d(input, filter, expected, options, undefined, 'relu6', true);
   });
 
   it('fused depthwise conv2d same-lower autoPad', async function() {
@@ -2240,8 +2240,8 @@ describe('test conv2d', async function() {
       groups: 2,
       autoPad: 'same-lower',
     };
-    testConv2d(input, filter, expected, options);
-    testConv2d(input, filter, expected, options, undefined, 'relu', true);
+    await testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options, undefined, 'relu', true);
     expected = {
       shape: [1, 2, 3, 3],
       data: [
@@ -2265,7 +2265,7 @@ describe('test conv2d', async function() {
         6,
       ],
     };
-    testConv2d(input, filter, expected, options, undefined, 'relu6', true);
+    await testConv2d(input, filter, expected, options, undefined, 'relu6', true);
   });
 
   it('fused conv2d with padding default', async function() {
@@ -2294,8 +2294,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 5, 5],
       data: [
@@ -2303,7 +2303,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
     expected = {
       shape: [1, 1, 5, 5],
       data: [
@@ -2334,7 +2334,7 @@ describe('test conv2d', async function() {
         -1.600000023841858,
       ],
     };
-    testConv2d(
+    await testConv2d(
         input, filter, expected, options, bias, 'leakyRelu', true,
         {alpha: 0.10000000149011612});
     expected = {
@@ -2367,7 +2367,7 @@ describe('test conv2d', async function() {
         1.1253516163378663e-7,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'sigmoid', true);
+    await testConv2d(input, filter, expected, options, bias, 'sigmoid', true);
   });
 
   it('fused conv2d with padding nchw hwio', async function() {
@@ -2398,8 +2398,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 5, 5],
       data: [
@@ -2407,7 +2407,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused conv2d with padding nchw ohwi', async function() {
@@ -2438,8 +2438,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 5, 5],
       data: [
@@ -2447,7 +2447,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused conv2d with padding nchw ihwo', async function() {
@@ -2478,8 +2478,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 1, 5, 5],
       data: [
@@ -2487,7 +2487,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused conv2d with padding nhwc oihw', async function() {
@@ -2518,8 +2518,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 5, 5, 1],
       data: [
@@ -2527,7 +2527,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
     expected = {
       shape: [1, 5, 5, 1],
       data: [
@@ -2558,7 +2558,7 @@ describe('test conv2d', async function() {
         -1.600000023841858,
       ],
     };
-    testConv2d(
+    await testConv2d(
         input, filter, expected, options, bias, 'leakyRelu', true,
         {alpha: 0.10000000149011612});
     expected = {
@@ -2591,7 +2591,7 @@ describe('test conv2d', async function() {
         1.1253516163378663e-7,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'sigmoid', true);
+    await testConv2d(input, filter, expected, options, bias, 'sigmoid', true);
   });
 
   it('fused conv2d with padding nhwc hwio', async function() {
@@ -2622,8 +2622,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 5, 5, 1],
       data: [
@@ -2631,7 +2631,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused conv2d with padding nhwc ohwi', async function() {
@@ -2662,8 +2662,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 5, 5, 1],
       data: [
@@ -2671,7 +2671,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('fused conv2d with padding nhwc ihwo', async function() {
@@ -2702,8 +2702,8 @@ describe('test conv2d', async function() {
         17., 0., 0., 44., 53., 62., 11., 0., 11., 17., 23., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu');
-    testConv2d(input, filter, expected, options, bias, 'relu', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu');
+    await testConv2d(input, filter, expected, options, bias, 'relu', true);
     expected = {
       shape: [1, 5, 5, 1],
       data: [
@@ -2711,7 +2711,7 @@ describe('test conv2d', async function() {
         6., 0., 0., 6., 6., 6., 6., 0., 6., 6., 6., 0.,
       ],
     };
-    testConv2d(input, filter, expected, options, bias, 'relu6', true);
+    await testConv2d(input, filter, expected, options, bias, 'relu6', true);
   });
 
   it('conv2d input=1x1x5x5 dilations=2', async function() {
@@ -2733,7 +2733,7 @@ describe('test conv2d', async function() {
     const options = {
       dilations: [2, 2],
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d input=1x5x5x1 dilations=4 nhwc', async function() {
@@ -2756,7 +2756,7 @@ describe('test conv2d', async function() {
       dilations: [4, 4],
       inputLayout: 'nhwc',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 
   it('conv2d input=1x65x65x1 dilations=4 nhwc', async function() {
@@ -3257,6 +3257,6 @@ describe('test conv2d', async function() {
       inputLayout: 'nhwc',
       filterLayout: 'ihwo',
     };
-    testConv2d(input, filter, expected, options);
+    await testConv2d(input, filter, expected, options);
   });
 });

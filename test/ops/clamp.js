@@ -2,25 +2,25 @@
 import * as utils from '../utils.js';
 
 describe('test clamp', async function() {
-  const context = navigator.ml.createContext();
+  const context = await navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   async function testClamp(inputShape, inputValue, expected, options = {}) {
     const builder = new MLGraphBuilder(context);
     const x = builder.input('x', {type: 'float32', dimensions: inputShape});
     const y = builder.clamp(x, options);
-    const graph = builder.build({y});
+    const graph = await builder.build({y});
     const inputs = {'x': new Float32Array(inputValue)};
     const outputs = {'y': new Float32Array(utils.sizeOfShape(inputShape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.y, expected);
   }
 
   it('clamp', async function() {
-    testClamp([3], [-2, 0, 2], [-1, 0, 1], {minValue: -1, maxValue: 1});
-    testClamp([3], [-1, 0, 1], [-1, 0, 1], {minValue: -5, maxValue: 5});
-    testClamp([3], [-6, 0, 6], [-5, 0, 5], {minValue: -5, maxValue: 5});
-    testClamp([3], [-1, 0, 6], [-1, 0, 5], {minValue: -5, maxValue: 5});
-    testClamp(
+    await testClamp([3], [-2, 0, 2], [-1, 0, 1], {minValue: -1, maxValue: 1});
+    await testClamp([3], [-1, 0, 1], [-1, 0, 1], {minValue: -5, maxValue: 5});
+    await testClamp([3], [-6, 0, 6], [-5, 0, 5], {minValue: -5, maxValue: 5});
+    await testClamp([3], [-1, 0, 6], [-1, 0, 5], {minValue: -5, maxValue: 5});
+    await testClamp(
         [3, 4, 5],
         [
           0.58585083,  1.1363881,   0.67161655,  -0.9741674,  -1.6196846,
@@ -54,8 +54,8 @@ describe('test clamp', async function() {
   });
 
   it('clamp with defaults', async function() {
-    testClamp([3], [-1, 0, 1], [-1, 0, 1]);
-    testClamp(
+    await testClamp([3], [-1, 0, 1], [-1, 0, 1]);
+    await testClamp(
         [3, 4, 5],
         [
           0.86301714,  -0.5896978, -0.27253276, 0.7375215,   0.43311873,
@@ -86,7 +86,7 @@ describe('test clamp', async function() {
           0.45028883, 0.,         1.2341441, 1.4498476,  0.,
         ],
         {minValue: 0});
-    testClamp(
+    await testClamp(
         [3, 4, 5],
         [
           -0.24508175, -0.7786755,  -1.6853821,  0.30301106,  0.7335949,

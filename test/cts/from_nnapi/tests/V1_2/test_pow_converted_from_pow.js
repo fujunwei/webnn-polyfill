@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test pow converted from pow test', async function() {
     // Converted test case (from: V1_2/pow.mod.py)
@@ -16,7 +16,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output = builder.pow(base, exponent);
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([2, 1]))};
-    await graph.computeAsync({'base': baseData, 'exponent': exponentData}, outputs);
+    await context.compute(graph, {'base': baseData, 'exponent': exponentData}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
@@ -31,7 +31,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output = builder.pow(base, exponent);
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([2, 1]))};
-    await graph.computeAsync({'base': baseData, 'exponent': exponentData}, outputs);
+    await context.compute(graph, {'base': baseData, 'exponent': exponentData}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
@@ -46,7 +46,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output1 = builder.pow(base, exponent1);
     const graph = builder.build({output1});
     const outputs = {output1: new Float32Array(utils.sizeOfShape([2, 2]))};
-    await graph.computeAsync({'base': baseData, 'exponent1': exponent1Data}, outputs);
+    await context.compute(graph, {'base': baseData, 'exponent1': exponent1Data}, outputs);
     utils.checkValue(outputs.output1, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
@@ -61,7 +61,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output1 = builder.pow(base, exponent1);
     const graph = builder.build({output1});
     const outputs = {output1: new Float32Array(utils.sizeOfShape([2, 2]))};
-    await graph.computeAsync({'base': baseData, 'exponent1': exponent1Data}, outputs);
+    await context.compute(graph, {'base': baseData, 'exponent1': exponent1Data}, outputs);
     utils.checkValue(outputs.output1, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 
@@ -76,7 +76,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output2 = builder.pow(base, exponent2);
     const graph = builder.build({output2});
     const outputs = {output2: new Float32Array(utils.sizeOfShape([3, 2, 2]))};
-    await graph.computeAsync({'base': baseData, 'exponent2': exponent2Data}, outputs);
+    await context.compute(graph, {'base': baseData, 'exponent2': exponent2Data}, outputs);
     utils.checkValue(outputs.output2, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 
@@ -91,7 +91,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output2 = builder.pow(base, exponent2);
     const graph = builder.build({output2});
     const outputs = {output2: new Float32Array(utils.sizeOfShape([3, 2, 2]))};
-    await graph.computeAsync({'base': baseData, 'exponent2': exponent2Data}, outputs);
+    await context.compute(graph, {'base': baseData, 'exponent2': exponent2Data}, outputs);
     utils.checkValue(outputs.output2, expected, utils.ctsFp32RelaxedAccuracyCriteria);
   });
 });

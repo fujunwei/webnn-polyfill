@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test gru', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('gruCell defaults', async function() {
     const builder = new MLGraphBuilder(context);
@@ -27,7 +27,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.12397027,
       0.12397027,
@@ -74,7 +74,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.20053662,
       0.20053662,
@@ -116,7 +116,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.14985296,
       0.14985296,
@@ -162,7 +162,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.90645754,
       1.90645754,
@@ -208,7 +208,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.90685618,
       1.90685618,
@@ -265,7 +265,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.98016739,
       1.9812535,
@@ -323,7 +323,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.98016739,
       1.9812535,
@@ -381,7 +381,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.98016739,
       1.9812535,
@@ -443,7 +443,7 @@ describe('test gru', async function() {
     const outputs = {
       'output': new Float32Array(utils.sizeOfShape([batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.99940538,
       1.99962664,
@@ -512,7 +512,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       1.98016739,
       1.9812535,
@@ -570,7 +570,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.22391089,
       0.22391089,
@@ -635,7 +635,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.22391089,
       0.22391089,
@@ -702,7 +702,7 @@ describe('test gru', async function() {
       'output1': new Float32Array(
           utils.sizeOfShape([steps, numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       [
         0.22391089,
@@ -803,7 +803,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.22391089,
       0.22391089,
@@ -868,7 +868,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.22227009,
       0.22227009,
@@ -933,7 +933,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.2239109,
       0.2239109,
@@ -1009,7 +1009,7 @@ describe('test gru', async function() {
       'output': new Float32Array(
           utils.sizeOfShape([numDirections, batchSize, hiddenSize])),
     };
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0.22391089,
       0.22391089,

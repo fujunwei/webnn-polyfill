@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test hardSwish', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('hardSwish', async function() {
     const builder = new MLGraphBuilder(context);
@@ -15,7 +15,7 @@ describe('test hardSwish', async function() {
       ]),
     };
     const outputs = {'y': new Float32Array(utils.sizeOfShape([2, 3]))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     const expected = [
       0., 0., 0., 0.36, 2.991006, 3.001,
     ];

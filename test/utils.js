@@ -168,7 +168,7 @@ export async function setPolyfillBackend(backend) {
     // https://github.com/webmachinelearning/webnn-polyfill/pull/32#issuecomment-763825323
     backend = 'cpu';
   }
-  const tf = navigator.ml.createContext().tf;
+  const tf = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'}).tf;
   if (tf) {
     const backends = ['webgl', 'webgpu', 'cpu', 'wasm'];
     if (!backends.includes(backend)) {

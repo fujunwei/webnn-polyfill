@@ -2,7 +2,7 @@
 import * as utils from '../utils.js';
 
 describe('test matmul', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   function testMatmul(A, B, expected) {
     const builder = new MLGraphBuilder(context);
@@ -13,7 +13,7 @@ describe('test matmul', async function() {
     const graph = builder.build({c});
     const inputs = {'a': new Float32Array(A.value)};
     const outputs = {'c': new Float32Array(utils.sizeOfShape(expected.shape))};
-    await graph.computeAsync(inputs, outputs);
+    await context.compute(graph, inputs, outputs);
     utils.checkValue(outputs.c, expected.value);
   }
 

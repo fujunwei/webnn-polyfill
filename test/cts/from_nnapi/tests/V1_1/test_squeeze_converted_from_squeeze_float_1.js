@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test squeeze converted from squeeze_float_1 test', async function() {
     // Converted test case (from: V1_1/squeeze_float_1.mod.py)
@@ -15,7 +15,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const output = builder.squeeze(input, {'axes': squeezeDims});
     const graph = builder.build({output});
     const outputs = {output: new Float32Array(utils.sizeOfShape([1, 24]))};
-    await graph.computeAsync({'input': inputData}, outputs);
+    await context.compute(graph, {'input': inputData}, outputs);
     utils.checkValue(outputs.output, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 });

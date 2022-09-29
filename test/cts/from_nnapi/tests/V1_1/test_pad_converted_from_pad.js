@@ -3,7 +3,7 @@ import * as utils from '../../../../utils.js';
 
 /* eslint-disable max-len */
 describe('CTS converted from NNAPI CTS', async function() {
-  const context = navigator.ml.createContext();
+  const context = navigator.ml.createContext({type: 'webnn', devicePreference: 'gpu'});
 
   it('test pad converted from pad test', async function() {
     // Converted test case (from: V1_1/pad.mod.py)
@@ -15,7 +15,7 @@ describe('CTS converted from NNAPI CTS', async function() {
     const op3 = builder.pad(op1, op2);
     const graph = builder.build({op3});
     const outputs = {op3: new Float32Array(utils.sizeOfShape([1, 4, 4, 1]))};
-    await graph.computeAsync({'op1': op1Data}, outputs);
+    await context.compute(graph, {'op1': op1Data}, outputs);
     utils.checkValue(outputs.op3, expected, utils.ctsFp32RestrictAccuracyCriteria);
   });
 });
